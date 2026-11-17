@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth, useLogout } from '../../../features/auth';
 import { CatalogSearch, CategoryNav } from '../../../features/products';
 import { CartLink } from '../../../features/cart';
+import { DeliveryLocation } from '../../../features/delivery';
 import { Icon } from '../../ui/Icon';
 import { Container } from '../../ui/Container';
 import { Button } from '../../ui/Button';
@@ -71,6 +72,7 @@ export function Header() {
     <div className="announcement-bar">A little everyday inspiration. <span>Demo store · Checkout coming soon</span></div>
     <Container className="header-inner">
       <Link className="wordmark" to="/" aria-label="Shoply home">shoply<span aria-hidden="true">✳</span></Link>
+      <DeliveryLocation key={auth.data?.id || 'guest'} user={auth.data} authPending={auth.isPending} authError={auth.error} />
       <CatalogSearch />
       <nav className="header-navigation" aria-label="Main navigation">
         <AccountMenu key={accountKey} user={auth.data} logout={logout} />

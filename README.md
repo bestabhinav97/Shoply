@@ -61,6 +61,20 @@ Vite proxies `/api` requests to the Express port configured in `.env`. Database 
 
 Database and pgAdmin credentials initialize their volumes on first startup. Changing the passwords in `.env` does not update credentials already stored in existing volumes.
 
+## Delivery location (frontend milestone)
+
+The header includes a responsive delivery-location chooser. Guests can explicitly
+request device location or sign in; the popup never requests location on page load.
+The frontend expects `POST /api/locations/reverse-geocode` to return `{ "city": "..." }`.
+The backend validates coordinates and calls Geoapify for a city-level result with
+an eight-second timeout. Configure `GEOAPIFY_API_KEY` in the root `.env` to enable
+lookup. Missing configuration or provider failures return **503**; no usable city
+returns **422**. Only a successfully resolved city is kept in session storage.
+Signed-in customers see a link to Account → Addresses and an explanation that saved
+addresses are coming next. No address tables have been added. Backend configuration
+reads the optional `GEOAPIFY_API_KEY` from the root `.env`; keep this key server-side.
+See [the frontend walkthrough and planned API contract](docs/delivery-location.md).
+
 ## Shopping cart
 
 Signed-in customers can add the selected in-stock variant from product details, choose 1–99 units, view the cart count in the header, and automatically update quantities or remove items at `/cart`. Quantity edits are debounced (450ms); totals update optimistically and roll back on failure. Removed items can be restored using Undo, subject to current stock availability. Guests are sent to login with a return URL. Run `npm run db:migrate` to apply `005_cart.sql`; no new environment variables are required.

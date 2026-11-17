@@ -126,7 +126,7 @@ test("visitors can open the public home page without signing in", async () => {
   ).toBeVisible();
 });
 
-test("protected account routes return users after login and support logout everywhere", async () => {
+test("account login lands on the homepage and the account still supports logout everywhere", async () => {
   window.history.replaceState({}, "", "/account");
   render(<App />);
   expect(
@@ -139,6 +139,10 @@ test("protected account routes return users after login and support logout every
     "a long secure passphrase",
   );
   await userEvent.click(screen.getByRole("button", { name: /Sign in/ }));
+  await waitFor(() => expect(window.location.pathname).toBe("/"));
+  expect(await screen.findByRole('heading', { name: /Your everyday/ })).toBeVisible();
+  await userEvent.click(screen.getByRole('button', { name: /account menu/i }));
+  await userEvent.click(screen.getByRole('link', { name: 'My account' }));
   expect(
     await screen.findByRole("heading", { name: "Profile", exact: true }),
   ).toBeVisible();
@@ -185,9 +189,7 @@ test("signup validates Swedish phones, masks passwords and submits only customer
   await userEvent.clear(screen.getByLabelText("Phone number"));
   await userEvent.type(screen.getByLabelText("Phone number"), "0701234567");
   await userEvent.click(screen.getByRole("button", { name: /Create account/ }));
-  expect(
-    await screen.findByRole("heading", { name: "Profile", exact: true }),
-  ).toBeVisible();
+  await waitFor(() => expect(window.location.pathname).toBe("/"));
   const body = JSON.parse(
     calls.find((call) => call.url === "/api/auth/register").options.body,
   );
@@ -220,8 +222,8 @@ test("invalid credentials show a useful error and stay on the login page", async
   );
 });
 
-test("external return destinations are rejected after login", async () => {
-  window.history.replaceState({}, "", "/login?next=%2F%2Fevil.example");
+test.each(["/login", "/login?next=%2F%2Fevil.example", "/login?next=%2Faccount", "/login?next=%2Faccount%2Fprofile"])("login defaults safely to the homepage from %s", async (path) => {
+  window.history.replaceState({}, "", path);
   render(<App />);
   await screen.findByRole("heading", { name: "Welcome back." });
   await userEvent.type(screen.getByLabelText("Email address"), customer.email);
@@ -230,10 +232,7 @@ test("external return destinations are rejected after login", async () => {
     "a long secure passphrase",
   );
   await userEvent.click(screen.getByRole("button", { name: /Sign in/ }));
-  expect(
-    await screen.findByRole("heading", { name: "Profile", exact: true }),
-  ).toBeVisible();
-  await waitFor(() => expect(window.location.pathname).toBe("/account/profile"));
+  await waitFor(() => expect(window.location.pathname).toBe("/"));
 });
 
 test("visitors return to the admin dashboard after signing in as an admin", async () => {

@@ -4,6 +4,7 @@ import helmet from "helmet";
 import healthRoutes from "./modules/health/health.routes.js";
 import authRoutes from "./modules/auth/auth.routes.js";
 import cartRoutes from "./modules/cart/cart.routes.js";
+import locationRoutes from "./modules/locations/location.routes.js";
 import {
   productRoutes,
   categoryRoutes,
@@ -24,12 +25,13 @@ app.use(cookieParser());
 app.use("/api/health", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/cart", cartRoutes);
+app.use("/api/locations", locationRoutes);
 app.use("/api/products", catalogLimiter, productRoutes);
 app.use("/api/categories", catalogLimiter, categoryRoutes);
 app.use("/api/admin/products", catalogLimiter, adminProductRoutes);
 app.use((_req, res) => res.status(404).json({ message: "Route not found" }));
 app.use((error, _req, res, _next) => {
-  const status = error.status >= 400 && error.status < 500 ? error.status : 500;
+  const status = Number.isInteger(error.status) && error.status >= 400 && error.status < 600 ? error.status : 500;
   if (status === 500)
     console.error("Request failed:", error.code || error.name);
   res.status(status).json({

@@ -21,6 +21,7 @@ export const env = {
   production,
   appOrigin,
   jwtSecret: process.env.JWT_SECRET,
+  geoapifyApiKey: process.env.GEOAPIFY_API_KEY || '',
   sessionSeconds: 8 * 60 * 60,
   port: Number(process.env.PORT || 3000),
   db: {

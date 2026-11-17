@@ -7,10 +7,11 @@ export default function AuthPage({ mode }) {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const auth = useAuth();
-  const requested = params.get('next') || '/account';
+  const requested = params.get('next') || '/';
   const destination = requested.startsWith('/') && !requested.startsWith('//') && !requested.includes('\\')
     && Array.from(requested).every((character) => character.charCodeAt(0) > 32)
-    && !/^\/(login|signup)(?:[/?#]|$)/.test(requested) ? requested : '/account';
+    && !/^\/account(?:\/profile)?\/?(?:[?#]|$)/.test(requested)
+    && !/^\/(login|signup)(?:[/?#]|$)/.test(requested) ? requested : '/';
   const switchLink = `${register ? '/login' : '/signup'}?next=${encodeURIComponent(destination)}`;
 
   if (auth.isPending) {

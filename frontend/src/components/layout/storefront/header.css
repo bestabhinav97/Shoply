@@ -2,7 +2,7 @@
 .site-header.is-scrolled { box-shadow: var(--shadow-header); }
 .announcement-bar { padding: 8px 16px; text-align: center; background: var(--color-text); color: var(--color-surface); font-size: var(--text-xs); line-height: 1.5; }
 .announcement-bar span { margin-left: 16px; }
-.header-inner.container { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "brand search navigation"; gap: 32px; align-items: center; padding-top: 20px; padding-bottom: 20px; }
+.header-inner.container { display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; grid-template-areas: "brand delivery search navigation"; gap: 16px; align-items: center; padding-top: 20px; padding-bottom: 20px; }
 .wordmark { grid-area: brand; display: inline-flex; align-items: center; gap: 4px; font-size: 36px; font-weight: 850; letter-spacing: -2px; white-space: nowrap; }
 .wordmark span { color: var(--color-primary-button); font-size: 30px; }
 .header-navigation { grid-area: navigation; display: flex; align-items: center; gap: 20px; min-width: 0; }
@@ -36,7 +36,7 @@
 .category-nav a:focus-visible { outline-offset: -3px; }
 .mobile-menu { display: none; }
 @media (max-width: 1023px) {
-  .header-inner.container { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "brand navigation" "search search"; gap: 12px 20px; padding-top: 12px; padding-bottom: 12px; }
+  .header-inner.container { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "brand navigation" "search search" "delivery delivery"; gap: 12px 20px; padding-top: 12px; padding-bottom: 12px; }
 }
 @media (max-width: 600px) {
   .announcement-bar span { display: none; }
