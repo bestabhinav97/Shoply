@@ -1,0 +1,388 @@
+SHOPLY - BACKEND AND AI ENGINEERING LEARNING NOTES
+================================================
+
+PURPOSE
+-------
+Use this project to learn backend engineering first. The React application is
+the client that exercises the APIs; PostgreSQL, business rules, authorization,
+and data integrity are the main learning focus. AI features are a later phase.
+
+PROJECT SNAPSHOT
+----------------
+Shoply is a JavaScript monorepo with a React/Vite frontend, a Node.js/Express
+modular-monolith API, and one PostgreSQL database. Docker Compose runs
+PostgreSQL and pgAdmin; the Node processes run locally.
+
+Implemented:
+- Customer registration, login, current-user lookup, logout, and logout-all.
+- Public catalog/category browsing, search, sort, pagination, and product
+  details.
+- Admin-only product/category reads and product create/edit workflows.
+- Dynamic product options, option values, explicit sellable variants, variant
+  prices and stock, and shared or variant-specific image references.
+- Database migrations, optional development seeding, and backend/frontend tests.
+
+Not implemented yet:
+- Cart, checkout, orders, payment processing, wishlist, and image uploads.
+- An AI assistant, LLM integration, embeddings, retrieval-augmented generation,
+  or AI evaluation.
+- Production deployment operations such as shared rate-limit storage, a
+  least-privilege runtime database account, and monitoring.
+
+CORE REQUEST PATHS
+------------------
+Public catalog:
+  Browser
+    -> frontend/src/features/products API and query hooks
+    -> frontend/src/lib/apiClient.js
+    -> backend/modules/products routes/controller/service/repository
+    -> PostgreSQL
+
+Admin product creation:
+  ProductCreateDetails and the other wizard steps
+    -> ProductCreateForm validates for user feedback
+    -> admin API module and shared apiClient
+    -> Express admin route checks session, role, origin, CSRF, and JSON body
+    -> controller validates the complete request with Zod
+    -> service starts a transaction and calls the write repository
+    -> PostgreSQL constraints/triggers validate the final catalog graph
+    -> service returns the saved admin representation
+
+Treat frontend validation as usability, not security. A caller can bypass the
+browser, so the API and database must enforce the real rules.
+
+ARCHITECTURAL DECISIONS AND WHY
+-------------------------------
+1. Modular monolith, not microservices
+   The backend is one Express process. Auth, products, health, and shared
+   middleware are separated by module, while sharing one PostgreSQL pool.
+   This keeps local development and transactions straightforward while making
+   ownership boundaries visible. Split services only when a measured need
+   justifies the operational and consistency costs.
+
+2. PostgreSQL owns durable business truth
+   The database stores users/sessions, catalog, options, variants, inventory,
+   and image metadata. `pg` queries are parameterized. Migrations are ordered,
+   recorded, and run inside a transaction with an advisory lock. The demo
+   seeder is explicit, transactional, repeatable, and disabled in production.
+   Learn schema design and SQL before adding an ORM or another database.
+
+3. Keep the product graph relational and flexible
+   Product options and values are normalized tables; variants refer to chosen
+   values through a junction table. Composite foreign keys prevent a variant
+   from selecting another product's option value. Deferred database triggers
+   require every variant to have exactly one selection per option and derive a
+   unique combination key. This supports new option types without adding
+   category-specific columns or treating JSON as a substitute for relations.
+   JSONB `specifications` is for descriptive, shared facts, not selectable
+   choices.
+
+4. Validate at more than one boundary
+   Zod validates request shape and produces useful HTTP errors. PostgreSQL
+   constraints, foreign keys, unique indexes, and triggers protect persistent
+   data even if another code path writes to the database. Validation in the
+   UI is an early explanation, not an authority.
+
+5. Make multi-row catalog changes atomic
+   A product edit replaces a complete product graph. The service begins a
+   transaction, locks the product, checks its version, updates parent and child
+   rows, and commits or rolls back as a unit. Stable child IDs preserve
+   identities such as variants and their inventory. The version check returns
+   a conflict instead of silently overwriting a concurrent admin edit.
+
+6. Represent currency exactly
+   Prices are integer minor units in SEK (for example, 44900 means SEK 449.00).
+   Avoid floating-point arithmetic for money. The UI converts typed prices to
+   integer öre, and the backend validates integer bounds.
+
+7. Keep public and admin contracts separate
+   Public catalog routes return published information and stock availability,
+   not exact inventory or internal edit data. Admin routes require server-side
+   authentication and the current database role, and return no-store responses
+   with the extra fields needed for editing. Hiding an admin link or guarding
+   a React route is not authorization.
+
+8. Use revocable cookie-based authentication
+   Passwords are Argon2id hashes. The browser receives an HttpOnly cookie
+   containing a signed, short-lived JWT with identifiers; each request also
+   checks its session row in PostgreSQL. That database check supports logout,
+   logout-all, and current-role changes without trusting a role claim from the
+   browser. Cookies are not stored in localStorage. Mutations check the exact
+   origin and a signed CSRF token. Note: this is JWT plus database-backed
+   revocation, not an opaque session-ID cookie or Express session middleware.
+
+9. Keep HTTP responsibilities layered
+   Routes compose middleware, controllers parse/validate and shape responses,
+   services implement business rules and transaction orchestration, and
+   repositories own SQL. Shared errors and rate limits avoid scattering
+   transport/database details throughout the UI.
+
+10. Keep server state on the server
+    TanStack Query fetches and caches API state; URL parameters carry shareable
+    catalog filters. Product prices and stock are never authoritative in the
+    browser. Cart and checkout must later recalculate both on the backend.
+
+11. Test through real boundaries
+    Backend tests use Node's test runner and Supertest with PostgreSQL schemas
+    isolated per test run. Frontend interaction tests use Vitest and React
+    Testing Library. This gives practice testing API contracts, transactions,
+    authorization, and user-visible behavior rather than only testing helpers.
+
+PROBLEMS ALREADY SOLVED
+-----------------------
+- Catalog search treats SQL wildcard characters literally, uses parameterized
+  values, bounds pagination, and selects ordering from a fixed allowlist.
+- Public shoppers cannot read draft/archived products or admin-only fields.
+- Invalid variant combinations, duplicate option values, cross-product IDs,
+  negative prices/stock, and stale product edits are rejected.
+- A partial admin save cannot leave half of a product configuration persisted.
+- Database-backed sessions allow per-device and all-device logout; role checks
+  use the current database value.
+- The UI can create products in stages and review them before the single save.
+  Categories created in the wizard are deliberately independent writes.
+- Tests exercise authentication protections, public/admin visibility, dynamic
+  options, catalog queries, and user interactions.
+
+WHAT ProductCreateDetails.jsx TEACHES
+-------------------------------------
+`frontend/src/features/admin/components/product-create/ProductCreateDetails.jsx`
+is a presentation step in a larger controlled form, not a backend handler.
+
+- `product` and `set` come from the parent wizard, so draft state is owned by
+  ProductCreateForm and can survive moving between steps.
+- The slug is initially derived from the product name. After the admin edits
+  it manually, the `customSlug` state prevents later name edits from replacing
+  the custom value.
+- `CategoryPicker` selects an existing category or opens the category-creation
+  flow. The category ID is ultimately sent to the backend.
+- Specification rows are convenient form state; the parent converts them to a
+  JSON object before saving. Names must be unique.
+- This step does not persist product data. Later wizard steps collect options,
+  variants, inventory, and image references; Review precedes POST.
+- The backend repeats all security-critical validation and saves the graph
+  transactionally. A browser can be modified or bypassed.
+
+BACKEND-FIRST LEARNING OBJECTIVES
+---------------------------------
+Objective 1 - Trace an endpoint end to end
+  Trace GET /api/products from route to controller, validation, service,
+  repository SQL, PostgreSQL, and response. Explain how each layer differs.
+  Done when you can add or change a query parameter and test its contract.
+
+Objective 2 - Learn relational modeling and SQL integrity
+  Draw the relationships among products, options, values, variants,
+  variant_option_values, inventory, and images. Explain every composite foreign
+  key and uniqueness rule. Practice writing joins and aggregate queries.
+  Done when you can explain why a junction table and database constraint prevent
+  a malformed variant selection.
+
+Objective 3 - Learn migrations and safe data evolution
+  Read migrations 001-004 in order, then explain schema_migrations, the advisory
+  lock, transaction rollback, and why migration 003 stops on ambiguous legacy
+  data before dropping old columns.
+  Done when you can design a migration with a precondition, safe transformation,
+  integrity checks, and recovery instructions.
+
+Objective 4 - Learn transactions, locking, and concurrency
+  Follow saveProduct through lockProduct and replaceProduct. Identify which
+  operations must be atomic, why a row is locked, and how the product version
+  detects stale edits. Experiment by sending two writes using the same version.
+  Done when one concurrent stale save fails clearly and leaves valid data.
+
+Objective 5 - Learn secure API design
+  Trace signup/login, password hashing, cookie flags, session lookup, CSRF and
+  origin checks, rate limits, and requireRole. Explain why the frontend guard
+  is only UX and why public registration cannot set an admin role.
+  Done when you can write an API test for an unauthenticated, wrong-role, and
+  allowed request.
+
+Objective 6 - Learn API testing and error contracts
+  Add tests for boundary inputs, database conflicts, public/admin field
+  differences, and rollback behavior. Keep success and error response shapes
+  consistent. Run the tests against PostgreSQL rather than a fake DB.
+  Done when tests demonstrate both the response and unchanged persistent state
+  after a rejected write.
+
+Objective 7 - Build a real purchase flow
+  Implement a server-owned cart, then order placement with an inventory
+  transaction. Re-read price and stock at checkout; never trust browser totals.
+  Prevent overselling under concurrent orders. Persist order-item name and
+  price snapshots, and make payment webhook handling idempotent when payments
+  are added.
+  Done when concurrent checkout tests cannot oversell and historical orders
+  remain unchanged after catalog edits.
+
+Objective 8 - Add AI as a backend capability after core commerce
+  Start with a read-only product-search assistant. Keep provider credentials
+  on the server, ground answers in catalog records, and return product IDs and
+  source data for traceability. Add an evaluation set for relevance, factual
+  grounding, latency, and cost.
+  Later, add narrowly allowlisted tools. Validate tool arguments server-side,
+  enforce normal user permissions, log safe traces, and require explicit user
+  confirmation before cart/order/purchase actions. Do not let an LLM issue
+  arbitrary SQL or bypass business services. Measure retrieval quality before
+  adding vector search or agents.
+
+SUGGESTED BUILD ORDER
+---------------------
+1. Deepen PostgreSQL, HTTP/REST, JavaScript async code, validation, and tests by
+   tracing and extending the existing auth/catalog vertical slices.
+2. Add cart persistence and authenticated cart APIs.
+3. Add transaction-safe checkout, order snapshots, and order history.
+4. Add a hosted payment-provider sandbox and verified, idempotent webhooks.
+5. Add operational basics: structured logs without secrets/PII, health checks,
+   migrations in deployment, backups, monitoring, and shared rate-limit
+   storage before multiple API instances.
+6. Add a read-only, evaluated AI catalog assistant; only later consider
+   retrieval/vector search and controlled tool calls.
+
+KNOWN GAPS AND CAUTIONS
+----------------------
+- This is a strong auth/catalog learning base, but it is not yet a functioning
+  store: no cart, checkout, order, or payment APIs exist.
+- AI is a future phase; do not describe the current project as having AI.
+- Rate limiting is in-process and resets on restart. Multiple API instances
+  need shared storage or equivalent edge protection.
+- Product images use existing storage keys and local sample assets; uploading
+  files is not implemented.
+- The local Compose setup is for development, not a production deployment.
+- Some README/change-note file inventories describe earlier paths. Verify
+  paths against the current tree when following those notes.
+- Backend tests require a running PostgreSQL database. Root commands include
+  `npm test`, `npm run lint`, and `npm run build`.
+
+PRESERVED PRODUCT RESPONSE EXAMPLE
+----------------------------------
+The example below was already in this file. It is kept as a teaching fixture.
+Its IDs (P1, O1, RED, V1, etc.) are labels, not UUIDs accepted by the current
+write API. The current API representation and constraints are documented in
+README.md and docs/catalog-options.md.
+
+{
+  "product": {
+    "id": "P1",
+    "slug": "everyday-sneaker",
+    "name": "Everyday sneaker",
+    "description": "A comfortable everyday shoe.",
+    "specifications": {
+      "material": "Canvas"
+    },
+    "category": {
+      "name": "Shoes",
+      "slug": "shoes"
+    },
+    "options": [
+      {
+        "id": "O1",
+        "name": "Color",
+        "position": 0,
+        "values": [
+          { "id": "RED", "value": "Red", "position": 0 },
+          { "id": "BLUE", "value": "Blue", "position": 1 }
+        ]
+      },
+      {
+        "id": "O2",
+        "name": "Size",
+        "position": 1,
+        "values": [
+          { "id": "S42", "value": "EU 42", "position": 0 },
+          { "id": "S43", "value": "EU 43", "position": 1 }
+        ]
+      }
+    ],
+    "variants": [
+      {
+        "id": "V1",
+        "sku": "SHOE-RED-42",
+        "optionValueIds": ["RED", "S42"],
+        "priceMinor": 44900,
+        "currency": "SEK",
+        "active": true,
+        "inStock": true
+      },
+      {
+        "id": "V2",
+        "sku": "SHOE-RED-43",
+        "optionValueIds": ["RED", "S43"],
+        "priceMinor": 45900,
+        "currency": "SEK",
+        "active": true,
+        "inStock": false
+      },
+      {
+        "id": "V3",
+        "sku": "SHOE-BLUE-42",
+        "optionValueIds": ["BLUE", "S42"],
+        "priceMinor": 47900,
+        "currency": "SEK",
+        "active": true,
+        "inStock": true
+      }
+    ],
+    "images": [
+      {
+        "url": "/images/products/red-sneaker.webp",
+        "alt": "Red everyday sneaker",
+        "width": 800,
+        "height": 1000,
+        "variantId": "V1"
+      }
+    ]
+  }
+}
+
+
+
+
+- Cart disappears after refresh or switching devices
+  - We store it in PostgreSQL, linked to the customer’s account.
+  - Signing into the same account retrieves the same cart.
+
+- Customer modifies someone else’s cart
+  - The backend takes the customer ID from their authenticated session.
+  - Item updates and removals are scoped to that customer’s cart.
+
+- Same variant appears as duplicate rows
+  - A database uniqueness constraint allows one row per cart/variant.
+  - Adding it again increases its quantity.
+
+- Wrong size or color gets added
+  - We store the specific variant ID, rather than just the product ID.
+
+- Customer submits a fake price
+  - The API accepts variant IDs and quantities.
+  - It reads prices from the database and calculates totals itself.
+  - Extra fields such as `priceMinor` are rejected.
+
+- Currency rounding errors
+  - Prices and calculations use integer öre.
+  - Formatting into `149,00 kr` happens for display.
+
+- Invalid or excessive quantities
+  - The API requires integers from 1–99.
+  - The database also enforces that range.
+  - The service limits carts to 100 distinct variants.
+
+- Two simultaneous additions overwrite each other
+  - A transaction locks the customer’s cart row, making its mutations run sequentially.
+  - We test concurrent additions.
+
+- A write fails halfway through
+  - The transaction rolls back, preserving the previous cart state.
+
+- Requested quantity exceeds stock
+  - Adding or updating checks current inventory.
+  - Unavailable products and insufficient stock return a conflict response.
+
+- Prices or availability change afterward
+  - Cart reads return current catalog prices and flag quantities that are no longer available.
+
+- A malicious website attempts a cart change
+  - State-changing endpoints require our existing session, CSRF token, and allowed-origin checks.
+
+- The screen updates but the save fails
+  - Quantity changes and removals update optimistically, then roll back on failure and refresh from the server.
+
+- Customer removes something accidentally
+  - Undo adds the variant back through the API, checking stock again.

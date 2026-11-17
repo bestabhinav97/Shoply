@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\WebShop\\.archify\\architecture-shoply-products-20261110-095431\\candidate.json",
+    "sha256": "3d1e7ca9cb74680ff86dc0f8bcb24368eb17caaa2a4bfa5d476d8f9bb754b8ed",
+    "bytes": 10069
+  },
+  "artifact": {
+    "path": "C:\\WebShop\\.archify\\architecture-shoply-products-20261110-095431\\shoply-products.html",
+    "sha256": "bdbf4421910e080ab08c146a31fafeeba708fe729ed71f10513658a9017a0031",
+    "bytes": 768367
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\WebShop\\.archify\\architecture-shoply-products-20261110-095431\\shoply-products.finalize.json",
+    "summaryReceipt": "C:\\WebShop\\.archify\\architecture-shoply-products-20261110-095431\\shoply-products.finalize-summary.json",
+    "browserCheckReceipt": "C:\\WebShop\\.archify\\architecture-shoply-products-20261110-095431\\shoply-products.browser-check.json"
+  },
+  "update": {
+    "status": "unavailable",
+    "installedVersion": null,
+    "availableVersion": null,
+    "releaseNotes": null,
+    "checkedAt": null,
+    "source": null,
+    "noticeRequired": false,
+    "noticeText": null,
+    "reason": "check-failed"
+  },
+  "visualReview": "not-requested",
+  "durationMs": 3437
+}

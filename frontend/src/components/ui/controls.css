@@ -1,0 +1,78 @@
+.ui-input,
+.ui-select {
+  min-height: 48px;
+  min-width: 0;
+  padding: 12px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 14px;
+}
+
+.ui-input::placeholder {
+  color: var(--color-muted);
+}
+
+.ui-input-group {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+}
+
+.ui-input-prefix {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding-left: 12px;
+  color: var(--color-muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.ui-input-prefix svg {
+  width: 16px;
+  height: 16px;
+}
+
+.ui-input-group > .ui-input {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  border: 0;
+}
+
+.ui-input-group:has(input:focus-visible) {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.ui-input-group > .ui-input:focus-visible {
+  outline: none;
+}
+
+.ui-input:disabled,
+.ui-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.text-button {
+  min-height: 44px;
+  padding: 4px;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-decoration: underline;
+}
+
+@media (max-width: 680px) {
+  .ui-input,
+  .ui-select {
+    font-size: 16px;
+  }
+}

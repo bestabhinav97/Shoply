@@ -1,0 +1,53 @@
+.site-header { position: sticky; top: 0; z-index: 20; background: var(--color-surface); border-bottom: 1px solid var(--color-border); }
+.site-header.is-scrolled { box-shadow: var(--shadow-header); }
+.announcement-bar { padding: 8px 16px; text-align: center; background: var(--color-text); color: var(--color-surface); font-size: var(--text-xs); line-height: 1.5; }
+.announcement-bar span { margin-left: 16px; }
+.header-inner.container { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "brand search navigation"; gap: 32px; align-items: center; padding-top: 20px; padding-bottom: 20px; }
+.wordmark { grid-area: brand; display: inline-flex; align-items: center; gap: 4px; font-size: 36px; font-weight: 850; letter-spacing: -2px; white-space: nowrap; }
+.wordmark span { color: var(--color-primary-button); font-size: 30px; }
+.header-navigation { grid-area: navigation; display: flex; align-items: center; gap: 20px; min-width: 0; }
+.account-menu { position: relative; min-width: 0; }
+.account-trigger { display: flex; align-items: center; gap: 8px; min-height: 44px; max-width: 200px; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--color-text); padding: 0 4px; font-weight: 650; }
+.account-trigger:hover { background: var(--color-background); }
+.account-trigger > svg { width: 16px; height: 16px; flex-shrink: 0; }
+.account-avatar { width: 36px; height: 36px; display: grid; place-items: center; flex-shrink: 0; border-radius: 50%; background: var(--color-story); color: var(--color-primary-button); }
+.account-menu-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--text-sm); }
+.account-dropdown { position: absolute; right: 0; top: calc(100% + 12px); z-index: 2; width: 240px; padding: 8px; border: 1px solid var(--color-border); border-radius: var(--radius-md); box-shadow: var(--shadow-card); background: var(--color-surface); }
+.account-dropdown a, .account-dropdown button, .mobile-navigation a, .mobile-navigation button { display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 12px; padding: 12px; min-height: 44px; border: 0; border-radius: var(--radius-sm); background: transparent; text-align: left; font-size: var(--text-sm); }
+.account-dropdown a:hover, .account-dropdown button:hover, .mobile-navigation a:hover { background: var(--color-background); }
+.account-dropdown small { font-size: var(--text-xs); color: var(--color-muted); }
+.account-dropdown p { padding: 8px; color: var(--color-error); }
+.header-cart { display: grid; place-items: center; position: relative; width: 48px; height: 48px; flex-shrink: 0; border-radius: var(--radius-sm); }
+.header-cart:hover { background: var(--color-background); }
+.header-cart svg { width: 26px; height: 26px; }
+.cart-badge { position: absolute; right: 0; top: 0; display: grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: var(--color-primary-button); color: var(--color-surface); font-size: var(--text-xs); line-height: 1; font-weight: 750; box-shadow: 0 0 0 2px var(--color-surface); }
+.header-search { grid-area: search; min-width: 0; width: 100%; }
+.header-search-controls { display: grid; grid-template-columns: minmax(100px, 145px) minmax(0, 1fr) auto; align-items: stretch; border: 1px solid var(--color-border); border-radius: 999px; background: var(--color-background); padding: 4px; }
+.header-search-controls:focus-within { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+.header-search-controls .ui-input, .header-search-controls .ui-select { width: 100%; min-height: 44px; padding: 8px 12px; border: 0; border-radius: 999px; background: transparent; font-size: var(--text-sm); }
+.header-search-controls .ui-select { border-right: 1px solid var(--color-border); border-radius: 999px 0 0 999px; text-overflow: ellipsis; }
+.header-search-controls .button { min-width: 44px; min-height: 44px; padding: 10px; border-radius: 50%; gap: 0; }
+.header-search-controls :focus-visible { outline-offset: -3px; }
+.header-search-error { margin-top: 8px; color: var(--color-error); font-size: var(--text-sm); }
+.category-nav { border-top: 1px solid var(--color-border); }
+.category-nav-inner { display: flex; gap: 24px; width: 100%; max-width: var(--container-width); padding: 0 var(--page-gutter); margin: auto; overflow-x: auto; scrollbar-width: thin; }
+.category-nav a { display: flex; align-items: center; flex-shrink: 0; min-height: 48px; border-bottom: 3px solid transparent; padding: 8px 4px; font-size: var(--text-sm); font-weight: 600; }
+.category-nav a[aria-current], .category-nav a:hover { color: var(--color-primary-button); border-color: var(--color-primary-button); }
+.category-nav a:focus-visible { outline-offset: -3px; }
+.mobile-menu { display: none; }
+@media (max-width: 1023px) {
+  .header-inner.container { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "brand navigation" "search search"; gap: 12px 20px; padding-top: 12px; padding-bottom: 12px; }
+}
+@media (max-width: 600px) {
+  .announcement-bar span { display: none; }
+  .wordmark { font-size: 32px; }
+  .header-navigation { gap: 8px; }
+  .header-navigation .account-menu { display: none; }
+  .mobile-menu { display: block; }
+  .mobile-menu > .button { padding: 10px; }
+  .mobile-navigation { display: grid; gap: 8px; margin-top: 24px; }
+  .mobile-menu h2 { font-size: var(--text-xl); font-weight: 700; }
+  .header-search-controls { grid-template-columns: 110px minmax(0, 1fr) auto; }
+  .header-search-controls .ui-input, .header-search-controls .ui-select { font-size: var(--text-sm); padding: 8px; }
+  .category-nav-inner { gap: 20px; }
+}

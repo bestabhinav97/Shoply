@@ -1,0 +1,30 @@
+# Dependencies (root and workspaces)
+node_modules/
+
+# Build output and tool caches
+dist/
+.vite/
+.cache/
+.eslintcache
+
+# Local environment and secrets; keep setup examples versioned
+.env
+.env.*
+!.env.example
+
+# Test coverage and runtime output
+coverage/
+.nyc_output/
+*.log
+*.pid
+*.pid.lock
+report.*.json
+
+# Local editor and operating system files
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+Desktop.ini

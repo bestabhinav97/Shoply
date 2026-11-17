@@ -1,0 +1,76 @@
+erDiagram
+    categories ||--o{ products : contains
+    products ||--o{ product_options : defines
+    product_options ||--|{ product_option_values : allows
+    products ||--o{ product_variants : offers
+    product_variants ||--o| inventory : has_stock_record
+    product_variants ||--o{ variant_option_values : selects
+    product_option_values ||--o{ variant_option_values : used_by
+    products ||--o{ product_images : owns
+    product_variants |o--o{ product_images : optionally_illustrates
+
+    categories {
+        uuid id PK
+        varchar name
+        varchar slug UK
+        timestamptz created_at
+    }
+    products {
+        uuid id PK
+        uuid category_id FK
+        varchar slug UK
+        varchar name
+        varchar description
+        text status "draft, active, archived"
+        jsonb specifications "Object only; not selectable options"
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    product_options {
+        uuid id PK
+        uuid product_id FK
+        text name "Unique per product after trim and lowercase"
+        integer position "Nonnegative; unique per product"
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    product_option_values {
+        uuid id PK
+        uuid product_id FK "Part of composite ownership FK"
+        uuid option_id FK
+        text value "Unique per option after trim and lowercase"
+        integer position "Nonnegative; unique per option"
+    }
+    product_variants {
+        uuid id PK
+        uuid product_id FK
+        varchar sku UK
+        integer price_minor "Nonnegative integer ore"
+        text currency "SEK only"
+        boolean active
+        text combination_key "Derived; unique with product_id"
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    variant_option_values {
+        uuid product_id FK "Part of both composite FKs"
+        uuid variant_id PK,FK
+        uuid option_id PK,FK
+        uuid option_value_id FK
+    }
+    inventory {
+        uuid variant_id PK,FK
+        integer quantity "Nonnegative; default zero"
+        timestamptz updated_at
+    }
+    product_images {
+        uuid id PK
+        uuid product_id FK
+        uuid variant_id FK "Nullable; NULL means shared image"
+        varchar storage_key
+        varchar alt_text
+        integer width "1 to 10000"
+        integer height "1 to 10000"
+        integer position "Nonnegative; unique per product"
+        timestamptz created_at
+    }

@@ -1,0 +1,171 @@
+.admin-layout {
+  --admin-accent: var(--color-primary-button);
+  --admin-accent-hover: #9f2e17;
+  --admin-accent-soft: var(--color-story);
+  --admin-surface-muted: #f8fafc;
+  --admin-success: #166534;
+  --admin-success-soft: #ecfdf3;
+  --admin-warning: #92400e;
+  --admin-warning-soft: #fffbeb;
+  --admin-danger: #b91c1c;
+  --admin-danger-soft: #fef2f2;
+  --admin-info: #1d4ed8;
+  --admin-info-soft: #eff6ff;
+  --admin-radius-control: 8px;
+  --admin-radius-card: 12px;
+  --admin-shadow: 0 1px 3px rgb(30 41 59 / 4%);
+  --admin-focus-ring: 0 0 0 3px rgb(185 54 27 / 16%);
+  font-size: 14px;
+}
+
+.admin-layout .admin-products {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.admin-layout h1 {
+  margin: 0 0 8px;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.7px;
+  line-height: 1.3;
+}
+
+.admin-layout h2 {
+  font-size: 20px;
+  font-weight: 600;
+}
+.admin-layout h3 {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.admin-layout p {
+  line-height: 1.6;
+}
+.admin-layout label {
+  font-size: 13px;
+  font-weight: 500;
+}
+.admin-layout .button,
+.admin-layout .text-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 14px;
+  border-radius: var(--admin-radius-control);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.admin-layout .button svg,
+.admin-layout .text-button svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+.admin-layout .button {
+  box-shadow: var(--admin-shadow);
+}
+.admin-layout .button:hover {
+  background: var(--admin-surface-muted);
+}
+.admin-layout .primary {
+  background: var(--admin-accent);
+  border-color: var(--admin-accent);
+}
+.admin-layout .primary:hover {
+  background: var(--admin-accent-hover);
+  border-color: var(--admin-accent-hover);
+}
+.admin-layout .text-button {
+  color: var(--admin-accent);
+  border: 1px solid transparent;
+}
+.admin-layout .text-button:hover {
+  background: var(--admin-accent-soft);
+}
+.admin-layout button:disabled {
+  cursor: not-allowed;
+}
+.admin-layout .ui-input,
+.admin-layout .ui-select,
+.admin-layout textarea {
+  width: 100%;
+  min-height: 40px;
+  padding: 9px 12px;
+  border-radius: var(--admin-radius-control);
+  font-size: 14px;
+  line-height: 20px;
+}
+.admin-layout .ui-select {
+  appearance: none;
+  padding-right: 32px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='%2364748b' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' d='m7 10 5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+.admin-layout :is(.ui-input, .ui-select, textarea):focus-visible {
+  border-color: var(--admin-accent);
+  outline: 2px solid var(--admin-accent);
+  outline-offset: 1px;
+  box-shadow: var(--admin-focus-ring);
+}
+.admin-layout .field-hint {
+  font-size: 12px;
+}
+
+.admin-layout .ui-input-group > .ui-input {
+  min-height: 38px;
+  border: 0;
+}
+
+.admin-layout .ui-input-group:has(input:focus-visible) {
+  border-color: var(--admin-accent);
+  outline: 2px solid var(--admin-accent);
+  outline-offset: 1px;
+  box-shadow: var(--admin-focus-ring);
+}
+
+.admin-layout .ui-input-group > .ui-input:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+.admin-layout :is(input, textarea)[aria-invalid="true"] {
+  border-color: var(--admin-danger);
+}
+.admin-layout input[type="checkbox"] {
+  accent-color: var(--admin-accent);
+}
+.admin-layout .admin-content {
+  padding-top: 40px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .admin-layout
+    :is(.button, .text-button, .ui-input, .ui-select, textarea, tbody tr) {
+    transition:
+      background-color 160ms ease,
+      border-color 160ms ease,
+      box-shadow 160ms ease;
+  }
+}
+@media (max-width: 600px) {
+  .admin-layout .admin-products {
+    padding: 0;
+  }
+  .admin-layout .admin-content {
+    padding: 20px 16px 32px;
+  }
+  .admin-layout :is(.ui-input, .ui-select, textarea) {
+    font-size: 16px;
+  }
+}

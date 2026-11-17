@@ -1,0 +1,299 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Shoply product data model",
+    "locale": "en",
+    "output": ".archify/architecture-shoply-products-20261110-095431/shoply-products.html",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    {
+      "id": "categories",
+      "type": "database",
+      "label": "categories",
+      "sublabel": "Browse categories",
+      "tag": "UUID primary key",
+      "pos": [
+        420,
+        30
+      ],
+      "size": [
+        240,
+        76
+      ]
+    },
+    {
+      "id": "products",
+      "type": "database",
+      "label": "products",
+      "sublabel": "Shared catalog information",
+      "tag": "Specifications are JSON objects",
+      "pos": [
+        420,
+        200
+      ],
+      "size": [
+        250,
+        84
+      ]
+    },
+    {
+      "id": "product_options",
+      "type": "database",
+      "label": "product_options",
+      "sublabel": "Which selectors appear",
+      "tag": "0 to 8 options per product",
+      "pos": [
+        40,
+        420
+      ],
+      "size": [
+        270,
+        84
+      ]
+    },
+    {
+      "id": "product_variants",
+      "type": "database",
+      "label": "product_variants",
+      "sublabel": "Actual purchasable combinations",
+      "tag": "0 to 250 variants per product",
+      "pos": [
+        800,
+        420
+      ],
+      "size": [
+        280,
+        84
+      ]
+    },
+    {
+      "id": "product_option_values",
+      "type": "database",
+      "label": "product_option_values",
+      "sublabel": "Allowed choices for each selector",
+      "tag": "1 to 100 values per option",
+      "pos": [
+        40,
+        700
+      ],
+      "size": [
+        290,
+        84
+      ]
+    },
+    {
+      "id": "variant_option_values",
+      "type": "database",
+      "label": "variant_option_values",
+      "sublabel": "Connects a variant to its choices",
+      "tag": "One value per option per variant",
+      "pos": [
+        465,
+        700
+      ],
+      "size": [
+        300,
+        84
+      ]
+    },
+    {
+      "id": "inventory",
+      "type": "database",
+      "label": "inventory",
+      "sublabel": "Authoritative stock per variant",
+      "tag": "At most one inventory row per variant",
+      "pos": [
+        1100,
+        700
+      ],
+      "size": [
+        270,
+        84
+      ]
+    },
+    {
+      "id": "product_images",
+      "type": "database",
+      "label": "product_images",
+      "sublabel": "Shared or variant-specific photos",
+      "tag": "0 to 50 images per product",
+      "pos": [
+        800,
+        200
+      ],
+      "size": [
+        280,
+        84
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "category-products",
+      "from": "categories",
+      "to": "products",
+      "label": "1 : 0..N"
+    },
+    {
+      "id": "product-options",
+      "from": "products",
+      "to": "product_options",
+      "label": "1 : 0..8"
+    },
+    {
+      "id": "product-variants",
+      "from": "products",
+      "to": "product_variants",
+      "label": "1 : 0..250"
+    },
+    {
+      "id": "product-images",
+      "from": "products",
+      "to": "product_images",
+      "label": "1 : 0..50"
+    },
+    {
+      "id": "option-values",
+      "from": "product_options",
+      "to": "product_option_values",
+      "label": "1 : 1..100"
+    },
+    {
+      "id": "variant-selections",
+      "from": "product_variants",
+      "to": "variant_option_values",
+      "label": "1 : 0..8"
+    },
+    {
+      "id": "value-selections",
+      "from": "product_option_values",
+      "to": "variant_option_values",
+      "label": "1 : 0..N"
+    },
+    {
+      "id": "variant-stock",
+      "from": "product_variants",
+      "to": "inventory",
+      "label": "1 : 0..1"
+    },
+    {
+      "id": "variant-images",
+      "from": "product_variants",
+      "to": "product_images",
+      "label": "0..1 : 0..N"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "categories",
+      "items": [
+        "PK id uuid; name varchar(100); UNIQUE slug varchar(100); created_at timestamptz.",
+        "Name is nonempty; slug uses lowercase letters, digits and hyphens."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "products",
+      "items": [
+        "PK id uuid; FK category_id uuid; UNIQUE slug varchar(160); name varchar(160); description varchar(5000).",
+        "status: draft / active / archived. specifications jsonb defaults to {} and must be an object. created_at and updated_at timestamptz.",
+        "No color, size, price or stock fields live here. Every product references one existing category."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "product_options",
+      "items": [
+        "PK id uuid; FK product_id uuid; name text; position integer; created_at and updated_at timestamptz.",
+        "Option names are unique per product after trimming whitespace and lowercasing. Nonempty names: 1-100 characters.",
+        "Positions are nonnegative and unique per product (deferred constraint). Example: Color, Size, RAM."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "product_variants",
+      "items": [
+        "PK id uuid; FK product_id uuid; UNIQUE sku varchar(100); price_minor integer; currency text; active boolean.",
+        "combination_key text is generated by database triggers from sorted selected value UUIDs. UNIQUE(product_id, combination_key), deferred.",
+        "Prices are nonnegative integer ore; currency must be SEK. created_at and updated_at timestamptz. A simple product uses one default variant; legacy zero-variant rows remain possible."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "product_option_values",
+      "items": [
+        "PK id uuid; product_id uuid; option_id uuid; value text; position integer.",
+        "Composite FK(product_id, option_id) references product_options(product_id, id).",
+        "Labels are nonempty (1-100 characters) and unique per option ignoring case and surrounding whitespace. Positions are nonnegative and unique per option. Example: Red, Blue, EU 42."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "variant_option_values",
+      "items": [
+        "product_id uuid; variant_id uuid; option_id uuid; option_value_id uuid. All columns are required.",
+        "Composite PK(variant_id, option_id) prevents two values from the same option on one variant.",
+        "Composite FK(product_id, variant_id) references product_variants(product_id, id). Composite FK(product_id, option_id, option_value_id) references product_option_values(product_id, option_id, id).",
+        "Deferred triggers require every variant to select exactly one value for every product option. No duplicate combinations. All selected values must belong to the same product."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "inventory",
+      "items": [
+        "PK / FK variant_id uuid references product_variants(id). quantity integer defaults to 0 and must be nonnegative. updated_at timestamptz.",
+        "A missing inventory row is treated as zero stock by catalog reads. Exact quantities stay private; public responses contain inStock."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "product_images",
+      "items": [
+        "PK id uuid; FK product_id uuid; nullable variant_id uuid; storage_key varchar(255); alt_text varchar(300).",
+        "width and height integer (1-10000); nonnegative position integer, unique per product; created_at timestamptz.",
+        "Composite FK(product_id, variant_id) references product_variants(product_id, id), so variant images cannot point to another product. NULL variant_id means a shared image.",
+        "Storage keys must match products/<lowercase-name>.jpg, .webp or .png. Alt text is required and nonempty."
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "How to read the relationships",
+      "items": [
+        "Each arrow points from parent to child; labels describe parent : child cardinality. A shared image has no variant parent; a variant image has exactly one.",
+        "The ownership columns in composite foreign keys deliberately repeat product_id to prevent cross-product references.",
+        "PK = primary key. FK = foreign key. UNIQUE = duplicate values rejected. All options are required; not all theoretical combinations need a variant."
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Red + EU 42 example (illustrative)",
+      "items": [
+        "products P1 = Everyday sneaker. product_options O1 = Color and O2 = Size.",
+        "product_option_values RED belongs to O1 and S42 belongs to O2.",
+        "product_variants V1 = SKU SHOE-RED-42, price_minor 44900. variant_option_values contains (P1,V1,O1,RED) and (P1,V1,O2,S42).",
+        "inventory contains (V1,8). Selecting RED and S42 resolves V1; its price is SEK 449.00 and it is in stock."
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Integrity and deletion",
+      "items": [
+        "The complete graph is validated at transaction commit. Temporary intermediate states are allowed inside a save, but an incomplete final graph rolls back.",
+        "Product deletion cascades to owned options, variants and images. Variant deletion cascades to stock and selection rows. A referenced option value or variant image reference must be reconciled before deletion.",
+        "Triggers serialize graph writes on the parent product and update its edit version. Bounds: 8 options, 100 values per option, 250 variants, 50 images."
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "Source and scope",
+      "items": [
+        "Based on current local backend/migrations/002_catalog.sql and 003_dynamic_options.sql, plus catalog read behavior in product.repository.js.",
+        "Current schema after migration 003: color and size columns are removed. Identity fields are UUIDs; example IDs are abbreviated.",
+        "Local workspace has no Git metadata: this is an inspected working-file diagram, not a commit-pinned repository evidence receipt. Authentication tables are outside this product-focused view."
+      ]
+    }
+  ]
+}

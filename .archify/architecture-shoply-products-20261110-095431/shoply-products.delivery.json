@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "fd19bd8a-6668-4ff7-be24-477c0c1aad66",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "C:\\WebShop\\.archify\\architecture-shoply-products-20261110-095431\\candidate.json",
+  "output": "C:\\WebShop\\.archify\\architecture-shoply-products-20261110-095431\\shoply-products.html",
+  "specification": {
+    "sha256": "3d1e7ca9cb74680ff86dc0f8bcb24368eb17caaa2a4bfa5d476d8f9bb754b8ed",
+    "bytes": 10069
+  },
+  "artifact": {
+    "sha256": "bdbf4421910e080ab08c146a31fafeeba708fe729ed71f10513658a9017a0031",
+    "bytes": 768367
+  }
+}

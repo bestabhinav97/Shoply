@@ -1,0 +1,222 @@
+.admin-layout {
+  min-height: 100vh;
+  background: var(--color-background);
+}
+
+.admin-layout .admin-sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 5;
+  width: 72px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 24px 12px;
+  border-right: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.admin-layout .admin-sidebar:is(:hover, :has(:focus-visible)) {
+  width: 256px;
+  box-shadow: 8px 0 24px rgb(30 41 59 / 8%);
+}
+
+.admin-layout .admin-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  margin-bottom: 32px;
+  padding: 12px;
+  color: var(--color-primary-button);
+  font-size: 24px;
+  font-weight: 750;
+}
+
+.admin-layout .admin-brand-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.admin-layout .admin-brand-copy small {
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.admin-layout .admin-brand svg,
+.admin-layout .admin-navigation svg {
+  flex-shrink: 0;
+}
+
+.admin-layout .admin-nav-label {
+  white-space: nowrap;
+}
+
+.admin-layout .admin-sidebar .admin-brand,
+.admin-layout .admin-sidebar .admin-navigation a {
+  gap: 0;
+}
+
+.admin-layout .admin-sidebar .admin-brand-copy,
+.admin-layout .admin-sidebar .admin-nav-label {
+  max-width: 0;
+  overflow: hidden;
+  opacity: 0;
+}
+
+.admin-layout .admin-sidebar:is(:hover, :has(:focus-visible)) .admin-brand,
+.admin-layout
+  .admin-sidebar:is(:hover, :has(:focus-visible))
+  .admin-navigation
+  a {
+  gap: 12px;
+}
+
+.admin-layout .admin-sidebar:is(:hover, :has(:focus-visible)) .admin-brand-copy,
+.admin-layout .admin-sidebar:is(:hover, :has(:focus-visible)) .admin-nav-label {
+  max-width: 180px;
+  opacity: 1;
+}
+
+.admin-layout .admin-navigation {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.admin-layout .admin-navigation a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.admin-layout .admin-navigation a:hover,
+.admin-layout .admin-navigation a[aria-current="page"] {
+  background: var(--color-story);
+  color: var(--color-primary-button);
+}
+
+.admin-layout .admin-shop-link {
+  margin-top: 32px;
+  border-top: 1px solid var(--color-border);
+}
+
+.admin-layout .admin-content {
+  min-width: 0;
+  padding: 24px 4% 48px;
+  margin-left: 72px;
+}
+
+.admin-layout .admin-menu-controls {
+  display: none;
+}
+
+.admin-layout .mobile-menu-toggle {
+  display: none;
+}
+
+.admin-layout .admin-dashboard,
+.admin-layout .admin-products {
+  max-width: 1200px;
+  padding: 32px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-surface);
+}
+
+.admin-layout h1 {
+  margin: 16px 0;
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.admin-layout p {
+  margin: 12px 0;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.admin-layout .admin-table-scroll {
+  margin: 24px 0;
+  overflow-x: auto;
+}
+
+.admin-layout table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.admin-layout th,
+.admin-layout td {
+  padding: 16px 12px;
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+}
+.admin-layout th {
+  color: var(--color-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.admin-layout td {
+  vertical-align: top;
+}
+.admin-layout .admin-product-name {
+  font-weight: 650;
+  min-width: 160px;
+}
+.admin-layout .admin-product-category {
+  color: var(--color-muted);
+  font-size: 12px;
+}
+.admin-layout .admin-status {
+  text-transform: capitalize;
+}
+.admin-layout .admin-pagination {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .admin-layout .admin-sidebar {
+    transition: width 180ms ease;
+  }
+  .admin-layout .admin-sidebar .admin-brand-copy,
+  .admin-layout .admin-sidebar .admin-nav-label {
+    transition: opacity 180ms ease;
+  }
+}
+
+@media (max-width: 899px) {
+  .admin-layout .admin-sidebar {
+    display: none;
+  }
+  .admin-layout .mobile-menu-toggle {
+    display: inline-flex;
+  }
+  .admin-layout .admin-content {
+    margin-left: 0;
+  }
+  .admin-layout .admin-menu-controls {
+    display: block;
+    margin-bottom: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-layout .admin-content {
+    padding: 16px;
+  }
+  .admin-layout .admin-dashboard,
+  .admin-layout .admin-products {
+    padding: 20px;
+  }
+}
