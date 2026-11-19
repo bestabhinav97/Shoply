@@ -112,7 +112,7 @@ test('guest sign-in returns to the product, and cart is protected', async () => 
   expect(await screen.findByRole('link', { name: 'Sign in to add to cart' })).toHaveAttribute('href', `/login?next=${encodeURIComponent(`/products/${productId}`)}`);
   expect(screen.queryByRole('button', { name: 'Add to cart' })).not.toBeInTheDocument();
   await user.click(screen.getByRole('link', { name: 'Cart' }));
-  expect(await screen.findByRole('heading', { name: 'Welcome back.' })).toBeVisible();
+  expect(await screen.findByRole('heading', { name: 'Sign in' })).toBeVisible();
   expect(window.location.search).toBe('?next=%2Fcart');
 });
 

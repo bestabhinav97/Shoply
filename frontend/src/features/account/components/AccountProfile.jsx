@@ -22,13 +22,6 @@ export function AccountProfile() {
         <ProfileField name="email" label="Email" value={user.email} onVerify={showVerification} />
         <ProfileField name="phoneNumber" label="Phone number" value={user.phoneNumber} />
       </div>
-      <aside className="profile-verification" aria-labelledby="verification-title">
-        <Icon name="info" />
-        <div><h2 id="verification-title">Verify your contact details</h2>
-          <p>Verifying your email and phone helps secure your account and lets us send order updates.</p>
-        </div>
-        <Button variant="primary" onClick={showVerification}>Verify now</Button>
-      </aside>
     </section>
     <section className="account-panel profile-sessions" aria-labelledby="sessions-title">
       <div className="profile-section-title"><Icon name="shield" /><h2 id="sessions-title">Sessions</h2></div>
@@ -41,20 +34,20 @@ export function AccountProfile() {
         </Button>
       </div>
     </section>
-    <Modal open={dialog !== null} onClose={closeDialog} label={dialog === 'sessions' ? 'Sign out on all devices?' : 'Contact verification'} closeLabel="Close dialog">
+    <Modal open={dialog !== null} onClose={closeDialog} label={dialog === 'sessions' ? 'Sign out on all devices?' : 'Contact verification'}>
       <div className="account-dialog">
         {dialog === 'sessions' ? <>
           <h2>Sign out on all devices?</h2>
           <p>This ends all your Shoply sessions, including this one. You'll need to sign in again on each device.</p>
           {logout.error && <p role="alert" className="form-error">{logout.error.message}</p>}
           <div className="account-actions">
-            <Button autoFocus disabled={logout.isPending} onClick={closeDialog}>Cancel</Button>
+            <Button disabled={logout.isPending} onClick={closeDialog}>Cancel</Button>
             <Button className="account-danger-button" loading={logout.isPending} onClick={() => logout.mutate(true)}>Sign out everywhere</Button>
           </div>
         </> : <>
           <h2>Contact verification</h2>
           <p>Email and phone verification aren't available yet. Your contact details remain unverified. You can still edit and save them in your profile.</p>
-          <Button autoFocus onClick={closeDialog}>Got it</Button>
+          <Button onClick={closeDialog}>Got it</Button>
         </>}
       </div>
     </Modal>

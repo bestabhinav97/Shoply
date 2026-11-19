@@ -113,7 +113,7 @@ afterEach(() => vi.unstubAllGlobals());
 test("visitors can open the public home page without signing in", async () => {
   render(<App />);
   expect(
-    await screen.findByRole("heading", { name: /Your everyday/ }),
+    await screen.findByRole("heading", { name: /Find your next purchase/ }),
   ).toBeVisible();
   expect(window.location.pathname).toBe("/");
   expect(
@@ -122,7 +122,7 @@ test("visitors can open the public home page without signing in", async () => {
   await userEvent.click(screen.getByRole('button', { name: 'Account menu' }));
   await userEvent.click(screen.getByRole("link", { name: /Sign in \/ Register/ }));
   expect(
-    await screen.findByRole("heading", { name: "Welcome back." }),
+    await screen.findByRole("heading", { name: "Sign in" }),
   ).toBeVisible();
 });
 
@@ -130,7 +130,7 @@ test("account login lands on the homepage and the account still supports logout 
   window.history.replaceState({}, "", "/account");
   render(<App />);
   expect(
-    await screen.findByRole("heading", { name: "Welcome back." }),
+    await screen.findByRole("heading", { name: "Sign in" }),
   ).toBeVisible();
   expect(window.location.search).toContain("next=%2Faccount");
   await userEvent.type(screen.getByLabelText("Email address"), customer.email);
@@ -140,7 +140,7 @@ test("account login lands on the homepage and the account still supports logout 
   );
   await userEvent.click(screen.getByRole("button", { name: /Sign in/ }));
   await waitFor(() => expect(window.location.pathname).toBe("/"));
-  expect(await screen.findByRole('heading', { name: /Your everyday/ })).toBeVisible();
+  expect(await screen.findByRole('heading', { name: /Find your next purchase/ })).toBeVisible();
   await userEvent.click(screen.getByRole('button', { name: /account menu/i }));
   await userEvent.click(screen.getByRole('link', { name: 'My account' }));
   expect(
@@ -156,7 +156,7 @@ test("account login lands on the homepage and the account still supports logout 
   expect(calls.some((call) => call.url === "/api/auth/logout-all")).toBe(false);
   await userEvent.click(screen.getByRole("button", { name: "Sign out everywhere" }));
   expect(
-    await screen.findByRole("heading", { name: "Welcome back." }),
+    await screen.findByRole("heading", { name: "Sign in" }),
   ).toBeVisible();
   expect(calls.some((call) => call.url === "/api/auth/logout-all")).toBe(true);
   expect(
@@ -168,7 +168,7 @@ test("signup validates Swedish phones, masks passwords and submits only customer
   window.history.replaceState({}, "", "/signup");
   render(<App />);
   expect(
-    await screen.findByRole("heading", { name: "Make yourself at home." }),
+    await screen.findByRole("heading", { name: "Create account" }),
   ).toBeVisible();
   await userEvent.type(screen.getByLabelText("First name"), customer.firstName);
   await userEvent.type(screen.getByLabelText("Last name"), customer.lastName);
@@ -206,7 +206,7 @@ test("invalid credentials show a useful error and stay on the login page", async
   rejectLogin = true;
   window.history.replaceState({}, "", "/login");
   render(<App />);
-  await screen.findByRole("heading", { name: "Welcome back." });
+  await screen.findByRole("heading", { name: "Sign in" });
   await userEvent.type(screen.getByLabelText("Email address"), customer.email);
   await userEvent.type(
     screen.getByLabelText("Password", { exact: true }),
@@ -225,7 +225,7 @@ test("invalid credentials show a useful error and stay on the login page", async
 test.each(["/login", "/login?next=%2F%2Fevil.example", "/login?next=%2Faccount", "/login?next=%2Faccount%2Fprofile"])("login defaults safely to the homepage from %s", async (path) => {
   window.history.replaceState({}, "", path);
   render(<App />);
-  await screen.findByRole("heading", { name: "Welcome back." });
+  await screen.findByRole("heading", { name: "Sign in" });
   await userEvent.type(screen.getByLabelText("Email address"), customer.email);
   await userEvent.type(
     screen.getByLabelText("Password", { exact: true }),
@@ -240,7 +240,7 @@ test("visitors return to the admin dashboard after signing in as an admin", asyn
   window.history.replaceState({}, "", "/admin");
   render(<App />);
 
-  await screen.findByRole("heading", { name: "Welcome back." });
+  await screen.findByRole("heading", { name: "Sign in" });
   expect(window.location.search).toBe("?next=%2Fadmin");
   expect(
     screen.queryByRole("heading", { name: "Admin dashboard" }),
@@ -307,7 +307,7 @@ test("admins get a separate layout and can navigate back to the storefront", asy
 
   await userEvent.click(screen.getByRole("link", { name: "Back to shop" }));
   expect(
-    await screen.findByRole("heading", { name: /Your everyday/ }),
+    await screen.findByRole("heading", { name: /Find your next purchase/ }),
   ).toBeVisible();
   expect(screen.getByRole("search", { name: "Product search" })).toBeVisible();
 

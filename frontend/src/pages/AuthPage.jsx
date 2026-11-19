@@ -27,33 +27,9 @@ export default function AuthPage({ mode }) {
   return (
     <main className="auth-layout">
       <section className="auth-story" aria-label="Welcome to Shoply">
-        <span className="eyebrow">YOUR EVERYDAY, REIMAGINED</span>
-        <h1>
-          Good finds.
-          <br />
-          Great feeling<span className="accent-dot">.</span>
-        </h1>
-        <p>
-          A place for the things you need.
-          <br />
-          And the things you’ll love finding.
-        </p>
-        <div className="bag-art" aria-hidden="true">
-          <span className="art-orbit" />
-          <span className="art-spark">✳</span>
-          <div className="shopping-bag bag-back">
-            <span className="bag-handle" />
-          </div>
-          <div className="shopping-bag bag-front">
-            <span className="bag-handle" />
-            <span className="bag-mark">s.</span>
-          </div>
-          <span className="art-caption">THE NEXT GOOD FIND IS YOURS.</span>
-        </div>
-        <div className="story-footer">
-          <span>Made for your everyday</span>
-          <span>Sweden / SEK</span>
-        </div>
+        <h1>Your Shoply account</h1>
+        <p>Save delivery addresses and manage your cart.</p>
+        <div className="story-footer"><span>Sweden / SEK</span></div>
       </section>
 
       <section className="auth-panel" aria-labelledby="form-heading">
@@ -75,11 +51,8 @@ export default function AuthPage({ mode }) {
               Create account
             </Link>
           </div>
-          <span className="eyebrow form-eyebrow">
-            {register ? 'LET’S GET YOU STARTED' : 'YOUR NEXT FIND AWAITS'}
-          </span>
           <h2 id="form-heading">
-            {register ? 'Make yourself at home.' : 'Welcome back.'}
+            {register ? 'Create account' : 'Sign in'}
           </h2>
           <p className="form-intro">
             {register
@@ -92,16 +65,12 @@ export default function AuthPage({ mode }) {
             onSuccess={() => navigate(destination, { replace: true })}
           />
           <p className="auth-switch">
-            {register ? 'Already have an account?' : 'New around here?'}{' '}
+            {register ? 'Already have an account?' : 'New to Shoply?'}{' '}
             <Link to={switchLink}>
               {register ? 'Sign in' : 'Create an account'}
             </Link>
           </p>
         </div>
-        <p className="secure-note">
-          <span aria-hidden="true">◇</span> Your connection. Your account.
-          Securely handled.
-        </p>
       </section>
     </main>
   );

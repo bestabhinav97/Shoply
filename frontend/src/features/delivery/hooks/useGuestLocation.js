@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { reverseGeocode } from '../api/delivery.api';
+import { getDeviceCoordinates } from '../../../lib/getDeviceCoordinates';
 
 const storageKey = 'shoply.guest-city';
 
@@ -8,23 +9,6 @@ function readCity() {
     const city = sessionStorage.getItem(storageKey);
     return city && city.length <= 120 ? city : '';
   } catch { return ''; }
-}
-
-function locateDevice() {
-  return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
-      reject(new Error('Location isn’t supported by this browser. You can still sign in.'));
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(resolve, (error) => {
-      const messages = {
-        1: 'Location permission was denied. You can allow it in browser settings or sign in.',
-        2: 'Your device couldn’t determine your location. Please try again or sign in.',
-        3: 'Finding your location took too long. Please try again or sign in.',
-      };
-      reject(new Error(messages[error.code] || 'Location is unavailable. Please try again or sign in.'));
-    }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 });
-  });
 }
 
 export function useGuestLocation() {
@@ -53,12 +37,12 @@ export function useGuestLocation() {
     setStatus('locating');
     let lookupTimeout;
     try {
-      const position = await locateDevice();
+      const coordinates = await getDeviceCoordinates();
       // Geolocation callbacks cannot be cancelled; ignore them after dismissal.
       if (controller.signal.aborted) return;
       setStatus('resolving');
       lookupTimeout = setTimeout(() => controller.abort(), 15000);
-      const resolvedCity = await reverseGeocode(position.coords, controller.signal);
+      const resolvedCity = await reverseGeocode(coordinates, controller.signal);
       if (controller.signal.aborted) return;
       try { sessionStorage.setItem(storageKey, resolvedCity); } catch { /* Memory still works. */ }
       setCity(resolvedCity);

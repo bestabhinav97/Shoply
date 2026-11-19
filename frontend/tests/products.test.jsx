@@ -353,7 +353,7 @@ test("broken product images show a placeholder and the cart is accessible", asyn
   render(<App />);
   await screen.findByRole("heading", { name: card.name });
   fireEvent.error(screen.getByRole("img", { name: image.alt }));
-  expect(screen.getByText("Photo coming soon")).toBeVisible();
+  expect(screen.getByRole("img", { name: "Product photo unavailable" })).toBeVisible();
   expect(screen.getByRole("link", { name: "Cart" })).toHaveAttribute('href', '/cart');
 });
 
@@ -370,7 +370,7 @@ test("account menu closes on Escape and navigation uses existing routes", async 
   await user.click(summary);
   await user.click(screen.getByRole("link", { name: "Sign in / Register" }));
   expect(window.location.pathname).toBe("/login");
-  await screen.findByRole("heading", { name: "Welcome back." });
+  await screen.findByRole("heading", { name: "Sign in" });
   expect(screen.getByRole('button', { name: 'Account menu' })).toHaveAttribute("aria-expanded", "false");
 });
 

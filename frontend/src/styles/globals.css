@@ -24,19 +24,19 @@
   --space-6: 24px;
   --space-8: 32px;
   --space-12: 48px;
-  --radius-sm: 8px;
-  --radius-md: 16px;
-  --radius-lg: 24px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
   --text-xs: 12px;
   --text-sm: 14px;
   --text-base: 16px;
   --text-lg: 20px;
-  --text-xl: 24px;
-  --text-2xl: 32px;
-  --text-3xl: 40px;
+  --text-xl: 20px;
+  --text-2xl: 28px;
+  --text-3xl: 28px;
   --container-width: 1200px;
   --page-gutter: 16px;
-  --header-offset: 180px;
+  --header-offset: 240px;
   --color-success-surface: #f0fdf4;
   --color-error: #dc2626;
   --color-focus: #1d4ed8;
@@ -52,7 +52,7 @@
   --color-danger-soft: #fef2f2;
   --shadow-sm: 0 1px 2px rgb(16 24 40 / 4%);
   --shadow-md: var(--shadow-sm), 0 4px 16px rgb(16 24 40 / 4%);
-  --text-label: 13px;
+  --text-label: 14px;
   --shadow-header: 0 4px 16px rgb(30 41 59 / 8%);
   --shadow-card: 0 8px 24px rgb(30 41 59 / 12%);
   color: var(--color-text);
@@ -125,7 +125,7 @@ button:disabled {
   grid-template-columns: 1fr 1fr;
   min-height: 730px;
   border: 1px solid var(--color-border);
-  border-radius: 20px;
+  border-radius: 10px;
   overflow: hidden;
   background: var(--color-surface);
 }
@@ -141,15 +141,15 @@ button:disabled {
 
 .eyebrow {
   display: block;
-  font-size: 10px;
-  font-weight: 750;
+  font-size: 12px;
+  font-weight: 600;
   letter-spacing: 2px;
 }
 
 .auth-story h1 {
-  font-size: clamp(40px, 4.5vw, 62px);
-  font-weight: 700;
-  letter-spacing: -3px;
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  letter-spacing: -.6px;
   line-height: 1.08;
   margin: 40px 0 22px;
 }
@@ -159,95 +159,15 @@ button:disabled {
 }
 
 .auth-story > p {
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.8;
-}
-
-.bag-art {
-  min-height: 320px;
-  flex: 1;
-  position: relative;
-  margin-top: 24px;
-}
-
-.art-orbit {
-  position: absolute;
-  width: 260px;
-  height: 260px;
-  border: 1px solid var(--color-primary);
-  opacity: 0.3;
-  border-radius: 50%;
-  top: 8px;
-  left: 15%;
-}
-
-.shopping-bag {
-  position: absolute;
-  width: 152px;
-  height: 175px;
-  border-radius: 4px 4px 12px 12px;
-  top: 82px;
-  left: 38%;
-  background: var(--color-primary);
-  transform: rotate(9deg);
-  box-shadow: 12px 16px 24px rgb(30 41 59 / 9%);
-}
-
-.bag-handle {
-  position: absolute;
-  border: 7px solid var(--color-primary-button);
-  border-bottom: 0;
-  width: 58px;
-  height: 58px;
-  border-radius: 40px 40px 0 0;
-  top: -42px;
-  left: 47px;
-}
-
-.bag-back {
-  background: var(--color-surface);
-  top: 65px;
-  left: 15%;
-  transform: rotate(-12deg);
-}
-
-.bag-back .bag-handle {
-  border-color: var(--color-muted);
-}
-
-.bag-mark {
-  color: var(--color-text);
-  font-size: 72px;
-  letter-spacing: -6px;
-  font-weight: 750;
-  position: absolute;
-  left: 46px;
-  top: 30px;
-}
-
-.art-spark {
-  position: absolute;
-  font-size: 66px;
-  left: 73%;
-  top: 8px;
-  color: var(--color-primary-button);
-  transform: rotate(15deg);
-}
-
-.art-caption {
-  position: absolute;
-  top: 286px;
-  left: 17%;
-  font-size: 8px;
-  letter-spacing: 2px;
-  font-weight: 700;
 }
 
 .story-footer {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  font-size: 10px;
+  font-size: 12px;
   border-top: 1px solid rgb(30 41 59 / 15%);
   padding-top: 20px;
   margin-top: 24px;
@@ -283,7 +203,7 @@ button:disabled {
   padding: 12px 8px;
   text-align: center;
   color: var(--color-muted);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   border-bottom: 2px solid transparent;
 }
@@ -295,13 +215,13 @@ button:disabled {
 
 .form-eyebrow {
   color: var(--color-primary-button);
-  font-size: 9px;
+  font-size: 12px;
   letter-spacing: 1.5px;
 }
 
 .auth-panel h2 {
-  font-weight: 700;
-  font-size: 29px;
+  font-weight: 600;
+  font-size: 28px;
   letter-spacing: -1px;
   margin: 16px 0 10px;
   line-height: 1.2;
@@ -309,7 +229,7 @@ button:disabled {
 
 .form-intro {
   color: var(--color-muted);
-  font-size: 13px;
+  font-size: 14px;
   margin: 0 0 32px;
   line-height: 1.7;
 }
@@ -331,7 +251,7 @@ button:disabled {
 .field {
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 6px;
   min-width: 0;
 }
 
@@ -345,7 +265,7 @@ button:disabled {
   min-height: 52px;
   padding: 12px 14px;
   border: 1px solid var(--color-border);
-  border-radius: 8px;
+  border-radius: 6px;
   background: var(--color-surface);
   color: var(--color-text);
   font-size: 14px;
@@ -365,7 +285,7 @@ button:disabled {
 
 .field-hint,
 .field-error {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.5;
 }
 
@@ -399,10 +319,10 @@ button:disabled {
   gap: 32px;
   padding: 14px 20px;
   min-height: 48px;
-  border-radius: 8px;
+  border-radius: 6px;
   border: 1px solid var(--color-border);
-  font-size: 13px;
-  font-weight: 650;
+  font-size: 14px;
+  font-weight: 600;
   background: var(--color-surface);
   text-align: center;
 }
@@ -419,7 +339,7 @@ button:disabled {
 }
 
 .form-note {
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.6;
   margin-top: 16px;
   color: var(--color-muted);
@@ -434,19 +354,9 @@ button:disabled {
 
 .auth-switch a {
   color: var(--color-text);
-  font-weight: 650;
+  font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 3px;
-}
-
-.secure-note {
-  text-align: center;
-  font-size: 10px;
-  color: var(--color-muted);
-}
-
-.secure-note span {
-  margin-right: 5px;
 }
 
 .form-error {
@@ -454,8 +364,8 @@ button:disabled {
   border: 1px solid var(--color-error);
   color: var(--color-text);
   padding: 12px;
-  border-radius: 8px;
-  font-size: 13px;
+  border-radius: 6px;
+  font-size: 14px;
   margin-bottom: 20px;
 }
 
@@ -474,8 +384,8 @@ button:disabled {
 
 .home-page h1 {
   font-size: clamp(40px, 6vw, 76px);
-  font-weight: 700;
-  letter-spacing: -3px;
+  font-weight: 600;
+  letter-spacing: -.6px;
   line-height: 1.08;
   margin: 24px 0;
 }
@@ -497,8 +407,8 @@ button:disabled {
 }
 
 .account-page h1 {
-  font-size: 40px;
-  font-weight: 700;
+  font-size: 28px;
+  font-weight: 600;
   letter-spacing: -1px;
   margin: 16px 0;
   overflow-wrap: anywhere;
@@ -514,7 +424,7 @@ button:disabled {
 
 .profile-card h2 {
   font-size: 20px;
-  font-weight: 650;
+  font-weight: 600;
   margin: 0 0 16px;
 }
 
@@ -542,7 +452,7 @@ button:disabled {
 }
 
 .role-badge {
-  font-weight: 650;
+  font-weight: 600;
   text-transform: capitalize;
 }
 
@@ -566,7 +476,7 @@ button:disabled {
     padding: 28px;
   }
   .auth-story h1 {
-    letter-spacing: -2px;
+    letter-spacing: -.6px;
   }
 }
 
@@ -600,7 +510,7 @@ button:disabled {
     padding: 64px 24px;
   }
   .home-page h1 {
-    letter-spacing: -2px;
+    letter-spacing: -.6px;
   }
   .profile-card {
     padding: 20px;

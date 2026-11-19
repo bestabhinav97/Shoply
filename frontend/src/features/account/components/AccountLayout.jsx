@@ -12,7 +12,7 @@ export function AccountLayout() {
     <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'Account', to: '/account' }, ...(title ? [{ label: title }] : [])]} />
     <div className="account-columns">
       <aside><p className="account-nav-title">My account</p><AccountSidebar /></aside>
-      <div className={title === 'Profile' ? 'account-content' : 'account-panel'}><Outlet /></div>
+      <div className="account-content">{title === 'Profile' ? <Outlet /> : <section className="account-panel"><Outlet /></section>}</div>
     </div>
   </main>;
 }

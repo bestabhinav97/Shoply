@@ -1,0 +1,62 @@
+.address-book, .address-form, .address-fields { display: grid; gap: 16px; }
+.address-book h3 { font-size: var(--text-base); font-weight: 400; }
+.address-note { color: var(--color-muted); font-size: var(--text-sm); line-height: 1.6; }
+.address-form fieldset { display: grid; gap: 16px; min-width: 0; }
+.address-autofill { display: grid; gap: 12px; padding: 16px; background: var(--color-background); border-radius: var(--radius-sm); }
+.address-autofill a { text-decoration: underline; text-underline-offset: 3px; }
+.address-replace { display: grid; gap: 12px; padding-top: 12px; border-top: 1px solid var(--color-border); }
+.address-field { display: grid; gap: 8px; min-width: 0; }
+.address-field label, .address-checkbox { font-size: var(--text-sm); font-weight: 600; }
+.address-field .ui-input { width: 100%; }
+.address-checkbox { display: flex; align-items: center; gap: 12px; min-height: 44px; }
+.address-checkbox input, .address-card > input { width: 20px; height: 20px; flex-shrink: 0; accent-color: var(--color-primary-button); }
+.address-error, .delivery-dialog .address-error { color: var(--color-error); font-size: var(--text-sm); }
+.address-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.address-actions .button { flex: 1; }
+.address-list { display: grid; gap: 12px; margin-bottom: 16px; min-width: 0; }
+.address-list legend { padding-bottom: 12px; font-size: var(--text-sm); font-weight: 600; }
+.address-card { display: flex; align-items: start; gap: 12px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 16px; overflow-wrap: anywhere; }
+.address-card:has(input:checked) { border-color: var(--color-primary-button); background: var(--color-brand-soft); }
+.address-card label { display: inline-flex; align-items: center; min-height: 32px; cursor: pointer; }
+.address-card p, .delivery-dialog .address-card p { font-size: var(--text-sm); line-height: 1.6; margin: 0; }
+.address-badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.address-badges span { font-size: var(--text-xs); background: var(--color-background); padding: 4px 8px; border-radius: var(--radius-sm); }
+.address-notice { color: var(--color-success-text); }
+.address-load-error { display: grid; gap: 12px; color: var(--color-muted); }
+.address-empty { padding: 16px; background: var(--color-background); border-radius: var(--radius-sm); }
+.account-addresses { display: grid; gap: 24px; }
+.account-addresses header .address-note { margin-top: 8px; }
+.address-grid { display: grid; grid-auto-rows: 1fr; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 16px; align-items: stretch; }
+.address-add-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; min-width: 0; min-height: 280px; padding: 24px; border: 2px dashed var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); color: var(--color-muted); font-size: var(--text-base); font-weight: 400; }
+.address-add-tile > svg { width: 24px; height: 24px; stroke-width: 1.5; }
+.address-add-tile:hover { background: var(--color-background); border-color: var(--color-muted); color: var(--color-text); }
+.address-grid-card { display: flex; flex-direction: column; min-width: 0; min-height: 280px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); box-shadow: none; overflow-wrap: anywhere; overflow: hidden; }
+.address-grid-details { padding: 20px 20px 12px; }
+.address-recipient { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; margin-bottom: 8px; font-size: var(--text-sm); }
+.address-grid-details p { margin: 0; font-size: var(--text-sm); line-height: 1.7; }
+.address-grid-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; min-height: 76px; margin-top: auto; padding: 8px 20px 16px; font-size: var(--text-xs); color: var(--color-muted); }
+.address-default-action { min-height: 44px; padding: 8px 0; color: var(--color-text); text-decoration: none; text-underline-offset: 3px; font-size: var(--text-sm); font-weight: 600; }
+.address-grid-footer > span { display: flex; align-items: center; gap: 8px; }
+.address-card-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; width: 100%; }
+.address-remove-action { color: var(--color-muted); }
+.address-remove-action:hover:not(:disabled) { color: var(--color-danger); }
+.modal.address-remove-modal { width: min(480px, calc(100% - 32px)); max-height: calc(100dvh - 32px); overflow-y: auto; margin: auto; padding: 24px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); color: var(--color-text); }
+.address-remove-modal::backdrop { background: rgb(30 41 59 / 60%); }
+.address-removal { display: grid; gap: 16px; }
+.address-removal h2 { font-size: var(--text-xl); font-weight: 600; }
+.address-removal-details { padding: 16px; background: var(--color-background); border-radius: var(--radius-sm); }
+.address-removal p { font-size: var(--text-sm); line-height: 1.6; }
+.button.address-danger-button { color: var(--color-surface); background: var(--color-danger); border-color: var(--color-danger); }
+.button.address-danger-button:hover { background: var(--color-text); border-color: var(--color-text); }
+@media (min-width: 640px) { .account-panel .address-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 479px) { .address-grid { grid-template-columns: minmax(0, 1fr); }  }
+
+.address-recipient strong { font-weight: 600; }
+.address-default-label { font-size: var(--text-xs); color: var(--color-muted); }
+.address-delivery-status { min-height: 24px; font-size: var(--text-xs); }
+.address-grid-footer svg { width: 16px; height: 16px; }
+.address-card-actions { flex-wrap: nowrap; gap: 12px; }
+.address-default-action { font-size: var(--text-xs); white-space: nowrap; }
+.address-default-action:hover { text-decoration: underline; }
+.address-field { gap: 6px; }
+.address-autofill { padding: 0 0 16px; border-bottom: 1px solid var(--color-border); background: transparent; border-radius: 0; }

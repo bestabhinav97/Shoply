@@ -25,6 +25,7 @@ beforeEach(() => {
     if (url === '/api/auth/logout' || url === '/api/auth/logout-all') { user = null; return response({ message: 'Signed out.' }); }
     if (url === '/api/categories') return response({ items: [] });
     if (url === '/api/cart') return response({ items: [], itemCount: 0 });
+    if (url === '/api/addresses') return response({ items: [], defaultAddressId: null, selectedAddressId: null });
     throw new Error(`Unexpected request: ${url}`);
   }));
 });
@@ -36,11 +37,11 @@ test('account defaults to Profile and navigation has linkable placeholder routes
   expect(window.location.pathname).toBe('/account/profile');
   const nav = screen.getByRole('navigation', { name: 'Account navigation' });
   expect(within(nav).getByRole('link', { name: 'Profile' })).toHaveAttribute('aria-current', 'page');
-  for (const [name, path, empty] of [['Addresses', 'addresses', 'No addresses yet.'], ['Payment methods', 'payment-methods', 'No payment methods yet.'], ['Orders', 'orders', 'No orders yet.']]) {
+  for (const [name, path, empty] of [['Addresses', 'addresses', 'No saved addresses yet. Add your first delivery address.'], ['Payment methods', 'payment-methods', 'No payment methods yet.'], ['Orders', 'orders', 'No orders yet.']]) {
     await userEvent.click(within(nav).getByRole('link', { name }));
     expect(window.location.pathname).toBe(`/account/${path}`);
     expect(screen.getByRole('heading', { name, exact: true })).toBeVisible();
-    expect(screen.getByText(empty)).toBeVisible();
+    expect(await screen.findByText(empty)).toBeVisible();
     expect(within(nav).getByRole('link', { name })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).toHaveTextContent(`Home/Account/${name}`);
   }
@@ -51,7 +52,7 @@ test.each(['profile', 'addresses', 'payment-methods', 'orders'])('direct account
   user = null;
   window.history.replaceState({}, '', `/account/${tab}`);
   render(<App />);
-  await screen.findByRole('heading', { name: 'Welcome back.' });
+  await screen.findByRole('heading', { name: 'Sign in' });
   expect(window.location.search).toBe(`?next=%2Faccount%2F${tab}`);
 });
 
@@ -111,7 +112,7 @@ test('missing values offer Add actions, international phones validate and cancel
 
 test('verification explains availability without making a request or changing status', async () => {
   render(<App />);
-  await userEvent.click(await screen.findByRole('button', { name: 'Verify now' }));
+  await userEvent.click(await screen.findByRole('button', { name: 'Verify' }));
   const dialog = screen.getByRole('dialog', { name: 'Contact verification' });
   expect(within(dialog).getByText(/aren't available yet/)).toBeVisible();
   await userEvent.click(within(dialog).getByRole('button', { name: 'Got it' }));
@@ -134,7 +135,7 @@ test('sign out everywhere requires confirmation and cancel keeps the session', a
   dialog = screen.getByRole('dialog', { name: 'Sign out on all devices?' });
   await userEvent.click(within(dialog).getByRole('button', { name: 'Sign out everywhere' }));
   await waitFor(() => expect(calls.filter(({ url }) => url === '/api/auth/logout-all')).toHaveLength(1));
-  expect(await screen.findByRole('heading', { name: 'Welcome back.' })).toBeVisible();
+  expect(await screen.findByRole('heading', { name: 'Sign in' })).toBeVisible();
 });
 
 test('sign out of this device uses the existing session endpoint', async () => {

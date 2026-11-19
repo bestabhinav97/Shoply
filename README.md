@@ -75,6 +75,44 @@ addresses are coming next. No address tables have been added. Backend configurat
 reads the optional `GEOAPIFY_API_KEY` from the root `.env`; keep this key server-side.
 See [the frontend walkthrough and planned API contract](docs/delivery-location.md).
 
+## Saved addresses
+
+Signed-in customers can open the shared Add address form from the header chooser
+or Account → Addresses. The frontend expects `GET /api/addresses`,
+`POST /api/addresses`, `PATCH /api/addresses/selected`, and
+`PATCH /api/addresses/default`. POST now saves to
+PostgreSQL and returns 201 with the updated address book. Failed saves retain
+the form values. Address data is not stored in browser storage.
+Migration `006_addresses.sql` now creates `addresses` and
+`user_address_preferences`; run `npm run db:migrate` to apply it. The schema stores
+default and delivery-selection references with database-enforced ownership.
+The POST route enforces authentication and CSRF protection; its controller validates
+and normalizes input, then calls the transactional service. The repository and service
+are implemented and tested, including a 20-address per-customer limit. Invalid
+input returns 400 with field-specific errors.
+GET now loads the signed-in customer's address book after refresh without changing
+preferences or requiring a CSRF token. Reads use a consistent, read-only database
+snapshot and are limited to 60 per minute per IP. PATCH selects an owned address
+under the customer row lock, preserves the default, and returns the updated book
+with 200. POST and PATCH share a 20-per-minute per-IP write limit. Missing or
+another customer's address returns 404 without changing preferences. Successful
+write responses update the current UI. The account cards' Set as default action
+PATCHes `/api/addresses/default` with `{ "addressId": "<uuid>" }`, preserves explicit
+delivery selection, and returns 200 with the updated book. It uses the same
+ownership, CSRF, transaction, and write-limit rules as selection.
+Edit reuses the prefilled form and calls `PATCH /api/addresses/:addressId` with
+the complete editable details; the ID/default/selected references are preserved.
+Remove requires confirmation and calls `DELETE /api/addresses/:addressId`.
+Deleting the default chooses the oldest remaining address, deleting the selected
+address clears explicit selection, and removing the last address leaves an empty
+book. Both return 200 with the updated book and enforce ownership under the
+customer lock. Location-based form autofill calls the authenticated
+`POST /api/locations/reverse-address` endpoint and suggests available Swedish street,
+city and postcode fields. It asks before replacing existing values and never saves
+automatically. The service shares Geoapify request logic with the header's city lookup.
+See [the autofill contract and local certificate-trust note](docs/address-autofill.md).
+See [the API contract and walkthrough](docs/saved-addresses.md).
+
 ## Shopping cart
 
 Signed-in customers can add the selected in-stock variant from product details, choose 1–99 units, view the cart count in the header, and automatically update quantities or remove items at `/cart`. Quantity edits are debounced (450ms); totals update optimistically and roll back on failure. Removed items can be restored using Undo, subject to current stock availability. Guests are sent to login with a return URL. Run `npm run db:migrate` to apply `005_cart.sql`; no new environment variables are required.
@@ -243,7 +281,7 @@ Product recommendations use the real category catalog API, exclude the current p
 
 ## Account area
 
-`/account` redirects to `/account/profile`. Profile, Addresses, Payment methods and Orders each have protected, refreshable routes under `/account`. The latter three are UI-only empty states with no data models or API calls. Account components and styles live in `frontend/src/features/account/`; route pages live in `frontend/src/pages/account/`. The desktop sidebar becomes a horizontally scrollable navigation bar below 768px.
+`/account` redirects to `/account/profile`. Profile, Addresses, Payment methods and Orders each have protected, refreshable routes under `/account`. Addresses supports PostgreSQL-backed add/list/select/default operations; Payment methods and Orders remain UI-only empty states. Account components and styles live in `frontend/src/features/account/`, with address functionality in `frontend/src/features/addresses/`; route pages live in `frontend/src/pages/account/`. The desktop sidebar becomes a horizontally scrollable navigation bar below 768px.
 
 Profile displays and edits the current user's email and phone. `PATCH /api/auth/me` accepts a nonempty object containing only `email` and/or `phoneNumber`, for example `{ "phoneNumber": "+12025550123" }`, and returns `{ "user": { ... } }` with the same public fields as `GET /api/auth/me`. It requires the session cookie, CSRF token and allowed Origin. Emails are normalized to lowercase and must be unique; phones must include `+` and a valid country code and are stored in E.164 format. Invalid input returns 400 with field errors, duplicate emails return 409, and unauthenticated requests return 401. The user ID always comes from the session. Successful saves update the shared auth query cache and PostgreSQL user record.
 

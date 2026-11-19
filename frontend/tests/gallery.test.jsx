@@ -36,7 +36,7 @@ test('gallery thumbnails select photos and the zoom dialog dismisses with Escape
 
 test('missing photos have a labeled fallback and no nonfunctional zoom control', () => {
   render(<ProductGallery images={[]} productName="Cup" />);
-  expect(screen.getByText('Photo coming soon')).toBeVisible();
+  expect(screen.getByRole('img', { name: 'Product photo unavailable' })).toBeVisible();
   expect(screen.queryByRole('button')).not.toBeInTheDocument();
 });
 

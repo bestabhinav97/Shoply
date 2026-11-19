@@ -4,6 +4,7 @@ import { useUpdateProfile } from '../../auth';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import { Icon } from '../../../components/ui/Icon';
+import { Modal } from '../../../components/ui/Modal';
 
 export function ProfileField({ name, label, value, onVerify }) {
   const update = useUpdateProfile();
@@ -48,13 +49,15 @@ export function ProfileField({ name, label, value, onVerify }) {
           {value && isEmail && <Button variant="text" className="profile-verify-link" onClick={onVerify}>Verify</Button>}
         </dd>
       </dl>
-      <Button ref={action} className="profile-field-action" aria-label={value ? `Edit ${label.toLowerCase()}` : undefined} hidden={editing} onClick={() => {
+      <Button ref={action} className="profile-field-action" aria-label={`${value ? 'Edit' : 'Add'} ${label.toLowerCase()}`} onClick={() => {
         setDraft(value || ''); setError(''); setNotice(''); update.reset(); setEditing(true);
-      }}>{!value && <Icon name="plus" />}{value ? 'Edit' : `Add ${label.toLowerCase()}`}</Button>
+      }}>{value ? 'Edit' : 'Add'}</Button>
     </div>
-    {editing && <form className="profile-contact-form" onSubmit={save} noValidate aria-label={`Edit ${label.toLowerCase()}`}>
+    <Modal open={editing} onClose={close} label={`Edit ${label.toLowerCase()}`} className="contact-edit-modal">
+    <h2>Edit {label.toLowerCase()}</h2>
+    <form className="profile-contact-form" onSubmit={save} noValidate aria-label={`Edit ${label.toLowerCase()}`}>
       <div className="field">
-        <Input autoFocus label={label} type={isEmail ? 'email' : 'tel'} name={name} value={draft}
+        <Input label={label} type={isEmail ? 'email' : 'tel'} name={name} value={draft}
           autoComplete={isEmail ? 'email' : 'tel'} maxLength={isEmail ? 254 : 40}
           disabled={update.isPending} aria-invalid={!!error} aria-describedby={error ? errorId : undefined}
           onChange={(event) => { setDraft(event.target.value); setError(''); }} />
@@ -63,7 +66,8 @@ export function ProfileField({ name, label, value, onVerify }) {
       </div>
       <div className="account-actions"><Button type="submit" variant="primary" loading={update.isPending}>{update.isPending ? 'Saving…' : 'Save'}</Button>
         <Button disabled={update.isPending} onClick={close}>Cancel</Button></div>
-    </form>}
+    </form>
+    </Modal>
     <p className="profile-save-notice" role="status">{notice}</p>
   </div>;
 }

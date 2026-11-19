@@ -1,0 +1,10 @@
+.modal > .modal-close, .drawer-panel > .modal-close {
+  position: absolute; top: 16px; right: 16px; display: grid; place-items: center;
+  width: 40px; height: 40px; min-height: 40px; margin: 0; padding: 0;
+  border: 0; border-radius: 8px; background: transparent; color: var(--color-muted);
+}
+.modal > .modal-close:hover, .drawer-panel > .modal-close:hover { background: var(--color-background); color: var(--color-text); }
+.modal-close svg { width: 20px; height: 20px; stroke-width: 1.75; }
+.modal > .modal-close:active, .drawer-panel > .modal-close:active { background: var(--color-border); }
+.modal-close:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+@media (pointer: coarse) { .modal > .modal-close, .drawer-panel > .modal-close { width: 44px; height: 44px; } }

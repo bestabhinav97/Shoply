@@ -69,7 +69,7 @@ export function Header() {
   }, []);
   const accountKey = `${location.key}-${auth.data?.id || 'guest'}`;
   return <header className={`site-header${scrolled ? ' is-scrolled' : ''}`}>
-    <div className="announcement-bar">A little everyday inspiration. <span>Demo store · Checkout coming soon</span></div>
+    <div className="announcement-bar">Demo store · Checkout is not available yet</div>
     <Container className="header-inner">
       <Link className="wordmark" to="/" aria-label="Shoply home">shoply<span aria-hidden="true">✳</span></Link>
       <DeliveryLocation key={auth.data?.id || 'guest'} user={auth.data} authPending={auth.isPending} authError={auth.error} />

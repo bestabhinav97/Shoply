@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useBeforeUnload, useBlocker, useNavigate } from "react-router-dom";
 import { Button } from "../../../../components/ui/Button";
+import { Modal } from "../../../../components/ui/Modal";
 import { editable } from "../../utils/productEditor";
 import { creationErrors } from "../../utils/productCreation";
 import { fetchAdminProduct } from "../../api/adminProducts.api";
@@ -32,6 +33,7 @@ export function ProductEditForm({ id, initial, categories }) {
   const [errors, setErrors] = useState([]);
   const [conflict, setConflict] = useState(false);
   const [reloading, setReloading] = useState(false);
+  const [reloadOpen, setReloadOpen] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [generation, setGeneration] = useState(0);
   const alert = useRef(null);
@@ -44,9 +46,7 @@ export function ProductEditForm({ id, initial, categories }) {
   // The data router covers links, programmatic navigation and browser Back/Forward.
   const blocker = useBlocker(() => !leavingAfterSave.current && (dirty || busy));
   useEffect(() => {
-    if (blocker.state !== "blocked") return;
-    if (!busy && window.confirm("Discard your unsaved product changes?")) blocker.proceed();
-    else blocker.reset();
+    if (blocker.state === "blocked" && busy) blocker.reset();
   }, [blocker, busy]);
   useBeforeUnload((event) => {
     if ((dirty || busy) && !leavingAfterSave.current) {
@@ -78,7 +78,7 @@ export function ProductEditForm({ id, initial, categories }) {
   }
 
   async function reload() {
-    if (!window.confirm("Reload the latest product and discard your local changes?")) return;
+    setReloadOpen(false);
     setReloading(true);
     try {
       const { product: latest } = await fetchAdminProduct(id);
@@ -98,7 +98,13 @@ export function ProductEditForm({ id, initial, categories }) {
   }
 
   const set = (key, value) => setProduct((current) => ({ ...current, [key]: value }));
+  function closeConfirmation() {
+    setReloadOpen(false);
+    if (blocker.state === "blocked") blocker.reset();
+  }
+
   return (
+    <>
     <form className="product-editor product-create product-edit" onSubmit={submit}>
       <div className="creation-heading">
         <h2>Product configuration</h2>
@@ -109,7 +115,7 @@ export function ProductEditForm({ id, initial, categories }) {
         <div role="alert" className="editor-error" ref={alert} tabIndex={-1}>
           <ul>{errors.map((error) => <li key={error}>{error}</li>)}</ul>
           {conflict && <p>Your edits are kept here until you choose to reload.</p>}
-          {conflict && <Button onClick={reload} disabled={busy}>Reload latest product</Button>}
+          {conflict && <Button onClick={() => setReloadOpen(true)} disabled={busy}>Reload latest product</Button>}
         </div>
       )}
       <fieldset className="creation-body" disabled={busy} key={generation}>
@@ -131,5 +137,15 @@ export function ProductEditForm({ id, initial, categories }) {
         </Button>
       </div>
     </form>
+    <Modal open={reloadOpen || (blocker.state === "blocked" && !busy)} onClose={closeConfirmation}
+      label={reloadOpen ? 'Reload latest product?' : 'Discard unsaved changes?'} className="product-confirm-modal">
+      <h2>{reloadOpen ? 'Reload latest product?' : 'Discard unsaved changes?'}</h2>
+      <p>{reloadOpen ? 'Reload the latest product and discard your local changes?' : 'Your unsaved product changes will be lost.'}</p>
+      <div className="account-actions">
+        <Button onClick={closeConfirmation}>Keep editing</Button>
+        <Button variant="primary" onClick={reloadOpen ? reload : () => blocker.proceed()}>{reloadOpen ? 'Reload product' : 'Discard changes'}</Button>
+      </div>
+    </Modal>
+    </>
   );
 }

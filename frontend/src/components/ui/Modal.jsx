@@ -1,20 +1,19 @@
 import { useEffect, useRef } from 'react';
-import { Button } from './Button';
-import { Icon } from './Icon';
+import { ModalCloseButton } from './ModalCloseButton';
+import { lockDialogScroll } from './dialogScrollLock';
 
-export function Modal({ open, onClose, label, labelledBy, describedBy, iconOnlyClose = false, closeLabel = 'Close enlarged photo', className = '', children }) {
+export function Modal({ open, onClose, label, labelledBy, describedBy, className = '', children }) {
   const dialog = useRef(null);
   useEffect(() => {
     const element = dialog.current;
     if (!open) return;
     const trigger = document.activeElement;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    const unlockScroll = lockDialogScroll();
     if (open && !element.open) element.showModal();
     element.querySelector('button, [href], [tabindex="0"]')?.focus();
     return () => {
       if (element.open) element.close();
-      document.body.style.overflow = previousOverflow;
+      unlockScroll();
       if (trigger?.isConnected) trigger.focus();
     };
   }, [open]);
@@ -26,9 +25,7 @@ export function Modal({ open, onClose, label, labelledBy, describedBy, iconOnlyC
       const bounds = event.currentTarget.getBoundingClientRect();
       if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) onClose();
     }}>
-    <Button className={`modal-close${iconOnlyClose ? ' modal-close-icon' : ''}`} onClick={onClose} aria-label={closeLabel}>
-      {iconOnlyClose ? <Icon name="close" /> : 'Close ×'}
-    </Button>
+    <ModalCloseButton onClick={onClose} />
     {open && children}
   </dialog>;
 }

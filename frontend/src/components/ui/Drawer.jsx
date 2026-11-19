@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
-import { Button } from "./Button";
+import { ModalCloseButton } from "./ModalCloseButton";
+import { lockDialogScroll } from './dialogScrollLock';
 import "./drawer.css";
 
 export function Drawer({ id, open, onClose, label, children }) {
@@ -8,11 +9,15 @@ export function Drawer({ id, open, onClose, label, children }) {
   useEffect(() => {
     const element = dialog.current;
 
-    if (open && !element.open) element.showModal();
-    if (!open && element.open) element.close();
-
+    if (!open) return;
+    const trigger = document.activeElement;
+    const unlockScroll = lockDialogScroll();
+    if (!element.open) element.showModal();
+    element.querySelector('button, [href], [tabindex="0"]')?.focus();
     return () => {
       if (element.open) element.close();
+      unlockScroll();
+      if (trigger?.isConnected) trigger.focus();
     };
   }, [open]);
 
@@ -31,13 +36,7 @@ export function Drawer({ id, open, onClose, label, children }) {
       }}
     >
       <div className="drawer-panel">
-        <Button
-          className="drawer-close"
-          onClick={onClose}
-          aria-label="Close menu"
-        >
-          Close ×
-        </Button>
+        <ModalCloseButton onClick={onClose} />
         {children}
       </div>
     </dialog>

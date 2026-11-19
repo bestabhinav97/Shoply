@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Icon } from "../../../../components/ui/Icon";
 import { Link } from "react-router-dom";
 import { formatCurrency } from "../../../../utils/formatCurrency";
 
@@ -19,9 +20,8 @@ export function ProductCard({ product, headingLevel: Heading = 'h2' }) {
               onError={() => setFailedImage(product.image.url)}
             />
           ) : (
-            <span className="photo-placeholder">Photo coming soon</span>
+            <span className="photo-placeholder" role="img" aria-label="Product photo unavailable"><Icon name="image" /></span>
           )}
-          {!product.inStock && <span className="product-badge">Out of stock</span>}
         </div>
 
         <div className="product-card-body">

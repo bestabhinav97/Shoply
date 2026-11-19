@@ -500,7 +500,6 @@ test("cancel and unload protect unsaved edits; confirmed navigation discards the
   const p = product([]);
   vi.stubGlobal("fetch", vi.fn(async (url) => url.endsWith("/categories")
     ? response({ items: [{ id: categoryId, name: "All products" }] }) : response({ product: p })));
-  const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
   const user = userEvent.setup();
   mount(<AdminProductEditor id="product" />);
   await screen.findByLabelText("Product name");
@@ -512,10 +511,11 @@ test("cancel and unload protect unsaved edits; confirmed navigation discards the
   window.dispatchEvent(dirty);
   expect(dirty.defaultPrevented).toBe(true);
   await user.click(screen.getByRole("link", { name: "Cancel" }));
-  expect(confirm).toHaveBeenCalledTimes(1);
+  expect(screen.getByRole("dialog", { name: "Discard unsaved changes?" })).toBeVisible();
+  await user.click(screen.getByRole("button", { name: "Keep editing" }));
   expect(screen.getByLabelText("Product name")).toHaveValue(p.name + " changed");
-  confirm.mockReturnValue(true);
   await user.click(screen.getByRole("link", { name: "Cancel" }));
+  await user.click(screen.getByRole("button", { name: "Discard changes" }));
   await screen.findByText("Saved catalog");
 });
 
@@ -539,7 +539,6 @@ test("stale conflicts retain edits until explicit reload, recover reload failure
       variants: [{ ...p.variants[0], priceMinor: 43210 }],
     } });
   }));
-  const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
   const user = userEvent.setup();
   mount(<AdminProductEditor id="product" />);
   await screen.findByLabelText("Product name");
@@ -549,12 +548,14 @@ test("stale conflicts retain edits until explicit reload, recover reload failure
   expect(screen.getByRole("button", { name: "Save product" })).toBeDisabled();
   await user.click(screen.getByRole("button", { name: "Reload latest product" }));
   expect(reads).toBe(1);
+  await user.click(screen.getByRole("button", { name: "Keep editing" }));
   expect(screen.getByLabelText("Product name")).toHaveValue(p.name + " local");
-  confirm.mockReturnValue(true);
   await user.click(screen.getByRole("button", { name: "Reload latest product" }));
+  await user.click(screen.getByRole("button", { name: "Reload product" }));
   await screen.findByText("Reload unavailable");
   expect(screen.getByLabelText("Product name")).toHaveValue(p.name + " local");
   await user.click(screen.getByRole("button", { name: "Reload latest product" }));
+  await user.click(screen.getByRole("button", { name: "Reload product" }));
   await waitFor(() => expect(screen.getByLabelText("Product name")).toHaveValue("Latest name"));
   expect(screen.getByLabelText("Variant 1 price (SEK)")).toHaveValue("432.10");
   expect(screen.getByRole("status")).toHaveTextContent("No unsaved changes");

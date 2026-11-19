@@ -6,10 +6,8 @@ import { ProductGallery } from './ProductGallery';
 import { RelatedProducts } from './RelatedProducts';
 import { Select } from '../../../../components/ui/Select';
 import { AddToCart } from '../../../cart';
-import { Badge } from '../../../../components/ui/Badge';
 import { Breadcrumbs } from '../../../../components/ui/Breadcrumbs';
 import { Accordion } from '../../../../components/ui/Accordion';
-import { Icon } from '../../../../components/ui/Icon';
 
 function ProductInformation({ product }) {
   const [selections, setSelections] = useState(() => Object.fromEntries(product.options.map((option) => [option.id,
@@ -25,7 +23,7 @@ function ProductInformation({ product }) {
     <div className="product-details-layout">
       <ProductGallery key={selected?.id} images={images} productName={product.name} />
       <section className="product-information" aria-labelledby="product-title">
-        <Link to={categoryPath} className="product-category-link"><Badge>{product.category.name}</Badge></Link>
+        <Link to={categoryPath} className="product-category-link">{product.category.name}</Link>
         <h1 id="product-title">{product.name}</h1>
         {selected ? <>
           <p className="detail-price" aria-live="polite">{formatCurrency(selected.priceMinor)}</p>
@@ -39,16 +37,12 @@ function ProductInformation({ product }) {
           </Select>
         </div>)}</div>
         <AddToCart key={selected?.id || 'unavailable'} variant={selected} />
-        <ul className="product-benefits">
-          <li><Icon name="bag" /><span><strong>Your finds, saved</strong>Cart items stay with your account.</span></li>
-          <li><Icon name="shield" /><span><strong>Availability checked</strong>Stock is checked when you add an item.</span></li>
-          <li><Icon name="truck" /><span><strong>Explore at your own pace</strong>This is a demo. Checkout is coming later.</span></li>
-        </ul>
+        <p className="product-demo-status">Demo store. Checkout is not available yet.</p>
       </section>
     </div>
     <section className="product-story" aria-label="About this product">
       <Accordion items={[
-        { title: 'A closer look', content: <><h3 className="section-kicker">Description</h3><p>{product.description}</p></> },
+        { title: 'Description', content: <><h3 className="section-kicker">Description</h3><p>{product.description}</p></> },
         { title: 'Details', content: <><p className="product-sku">SKU: {selected?.sku || 'Choose a variant'}</p>
           {Object.keys(product.specifications).length > 0 ? <dl className="specification-list">{Object.entries(product.specifications).map(([name, value]) => <div key={name}>
             <dt>{name}</dt><dd>{typeof value === 'object' ? JSON.stringify(value) : String(value)}</dd></div>)}</dl> : <p>Select the available options above to find your variant.</p>}</> },

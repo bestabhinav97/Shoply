@@ -4,6 +4,7 @@ import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
 import { Icon } from '../../../components/ui/Icon';
 import { useGuestLocation } from '../hooks/useGuestLocation';
+import { AddressBook, useAddresses } from '../../addresses';
 import '../styles/delivery.css';
 
 function LocationAttribution() {
@@ -17,7 +18,11 @@ export function DeliveryLocation({ user, authPending, authError }) {
   const id = useId();
   const [openedByButton, setOpen] = useState(false);
   const guest = useGuestLocation();
-  const open = openedByButton || (location.hash === '#delivery-location' && !guest.city);
+  const addresses = useAddresses(!authError && !authPending ? user?.id : undefined);
+  const selectedId = addresses.data?.selectedAddressId || addresses.data?.defaultAddressId;
+  const selectedAddress = addresses.data?.items.find((address) => address.id === selectedId);
+  const headerCity = selectedAddress?.city || guest.city;
+  const open = openedByButton || (location.hash === '#delivery-location' && (user || !guest.city));
   const busy = ['locating', 'resolving'].includes(guest.status);
   const next = `${location.pathname}${location.search}#delivery-location`;
   const description = authPending ? 'Loading your account…' : authError ? 'We couldn’t load your account. Refresh the page to try again.'
@@ -42,15 +47,15 @@ export function DeliveryLocation({ user, authPending, authError }) {
     <button type="button" className="delivery-trigger" aria-haspopup="dialog" aria-expanded={open}
       disabled={authPending} onClick={() => setOpen(true)}>
       <Icon name="pin" />
-      <span><span className="delivery-caption">{guest.city ? 'Delivery area' : 'Delivery location'}</span>{' '}
-        <strong>{authPending ? 'Loading…' : authError ? 'Choose location' : guest.city || (user ? 'Choose an address' : 'Choose location')}</strong></span>
-      <Icon name="chevron" />
+      <span className="delivery-trigger-text"><span className="delivery-caption">Deliver to</span>{' '}
+        <span className="delivery-city-line"><strong>{authPending ? 'Loading…' : authError ? 'Choose location' : headerCity || (user ? 'Choose an address' : 'Choose location')}
+          {selectedAddress?.postalCode && <small className="delivery-postcode">{' '}{selectedAddress.postalCode}</small>}</strong><Icon name="chevron" /></span>
+      </span>
     </button>
     <Modal open={open} onClose={close} labelledBy={`${id}-title`} describedBy={`${id}-description`}
-      iconOnlyClose closeLabel="Close" className="delivery-modal">
+      className="delivery-modal">
       <div className="delivery-dialog">
         <header className="delivery-dialog-header">
-          <span className="delivery-dialog-icon"><Icon name="pin" /></span>
           <h2 id={`${id}-title`}>Choose your delivery location</h2>
           <p id={`${id}-description`} role={authError ? 'alert' : undefined}>{description}</p>
         </header>
@@ -65,12 +70,8 @@ export function DeliveryLocation({ user, authPending, authError }) {
           {guest.status !== 'success' && <>
             {user && <>
               {guest.city && <div className="delivery-city"><Icon name="check" /><span><strong>{guest.city}</strong><small>Current delivery city · not a saved address</small></span></div>}
-              <section className="delivery-address-empty" aria-label="Saved addresses">
-                <Icon name="pin" />
-                <div><strong>No saved addresses yet</strong><p>Keep your delivery details together in your account.</p>
-                  <span className="delivery-coming-soon" aria-disabled="true">Saved address selection · Coming soon</span></div>
-              </section>
-              <Link className="button primary" to="/account/addresses" onClick={close}>Add a delivery address</Link>
+              <AddressBook user={user} chooser onSelected={close} />
+              <Link className="button" to="/account/addresses" onClick={close}>Manage addresses</Link>
             </>}
             <Button variant={user ? 'secondary' : 'primary'} onClick={detect} loading={busy}>
               {!busy && <Icon name="locate" />}{busy ? 'Detecting your location...' : 'Use my current location'}
