@@ -63,6 +63,14 @@ let emptyList;
 let pendingList;
 let failCategories;
 let categoryRequests;
+let observers;
+let failNextPage;
+
+function scrollToCatalogEnd() {
+  for (const observer of [...observers]) {
+    observer.callback([{ isIntersecting: true }]);
+  }
+}
 
 beforeEach(() => {
   listRequests = [];
@@ -72,6 +80,13 @@ beforeEach(() => {
   pendingList = false;
   failCategories = false;
   categoryRequests = 0;
+  failNextPage = false;
+  observers = new Set();
+  vi.stubGlobal("IntersectionObserver", class {
+    constructor(callback) { this.callback = callback; }
+    observe() { observers.add(this); }
+    disconnect() { observers.delete(this); }
+  });
   window.history.replaceState({}, "", "/products");
 
   vi.stubGlobal(
@@ -105,8 +120,15 @@ beforeEach(() => {
           new URL(url, "http://localhost").searchParams.get("page"),
         );
 
+        if (page === 2 && failNextPage)
+          return response({ message: "Next page unavailable." }, 503);
+
         return response({
-          items: emptyList ? [] : [card],
+          items: emptyList ? [] : [{ ...card, ...(page === 2 && {
+            id: "20000000-0000-4000-8000-000000000002",
+            name: "Canvas weekend sneaker",
+            priceMinor: 29900,
+          }) }],
           pagination: {
             page,
             limit: 12,
@@ -152,17 +174,24 @@ test("visitors browse API products and inspect size-specific prices and availabi
   expect(screen.getByText(/Purchasing isn’t available yet/)).toBeVisible();
 });
 
-test("search, category, sorting and pagination update the URL and API request", async () => {
+test("scrolling appends products; search, category and sorting reset the catalog", async () => {
   const user = userEvent.setup();
   render(<App />);
   await screen.findByRole("heading", { name: card.name });
 
-  await user.click(screen.getByRole("button", { name: "Next" }));
-  await waitFor(() => expect(window.location.search).toContain("page=2"));
+  await act(async () => scrollToCatalogEnd());
+  expect(await screen.findByRole("heading", { name: "Canvas weekend sneaker" })).toBeVisible();
+  expect(screen.getByRole("heading", { name: card.name })).toBeVisible();
+  expect(window.location.search).toBe("");
+  expect(screen.queryByRole("button", { name: "Next" })).not.toBeInTheDocument();
+  expect(screen.getByText("You've reached the end of the catalog.")).toBeVisible();
+  await act(async () => scrollToCatalogEnd());
+  expect(listRequests).toHaveLength(2);
 
   await user.type(screen.getByLabelText("Search products"), "sneaker");
   await user.keyboard("{Enter}");
   await waitFor(() => expect(window.location.search).toBe("?q=sneaker"));
+  await waitFor(() => expect(screen.queryByRole("heading", { name: "Canvas weekend sneaker" })).not.toBeInTheDocument());
 
   await user.selectOptions(screen.getByLabelText("Product category"), "shoes");
   await user.click(screen.getByRole("button", { name: "Search", exact: true }));
@@ -314,7 +343,7 @@ test("pending requests announce loading without displaying fabricated products",
   ).not.toBeInTheDocument();
 });
 
-test("price and stock filters refine the loaded page without changing API requests", async () => {
+test("price and stock filters refine loaded products without changing API requests", async () => {
   const user = userEvent.setup();
   render(<App />);
   await screen.findByRole("heading", { name: card.name });
@@ -324,7 +353,7 @@ test("price and stock filters refine the loaded page without changing API reques
   expect(screen.getByRole("heading", { name: card.name })).toBeVisible();
   await user.type(filters.getByLabelText("Max price"), "400");
   expect(screen.getByRole("heading", { name: "No products match your filters" })).toBeVisible();
-  expect(screen.getByRole("status")).toHaveTextContent("0 of 1 on this page");
+  expect(screen.getByRole("status")).toHaveTextContent("0 of 1 loaded products");
   expect(window.location.search).toBe("");
   expect(listRequests).toHaveLength(initialRequests);
   await user.click(screen.getByRole("button", { name: "Clear all" }));
@@ -404,4 +433,65 @@ test("filter drawer shares filters and responds to dismissal", async () => {
     if (close) Object.defineProperty(prototype, "close", close);
     else delete prototype.close;
   }
+});
+
+
+test("a failed next page keeps loaded products and requires an explicit retry", async () => {
+  render(<App />);
+  await screen.findByRole("heading", { name: card.name });
+  failNextPage = true;
+  await act(async () => scrollToCatalogEnd());
+  expect(await screen.findByRole("alert")).toHaveTextContent("Couldn't load more products");
+  expect(screen.getByRole("heading", { name: card.name })).toBeVisible();
+  const requestCount = listRequests.length;
+  await act(async () => scrollToCatalogEnd());
+  expect(listRequests).toHaveLength(requestCount);
+  failNextPage = false;
+  await userEvent.click(screen.getByRole("button", { name: "Retry loading products" }));
+  expect(await screen.findByRole("heading", { name: "Canvas weekend sneaker" })).toBeVisible();
+  expect(screen.getByRole("heading", { name: card.name })).toBeVisible();
+});
+
+test("repeated intersections do not duplicate pending loads and changing sort cancels them", async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  await screen.findByRole("heading", { name: card.name });
+  pendingList = true;
+  await act(async () => {
+    scrollToCatalogEnd();
+    scrollToCatalogEnd();
+  });
+  expect(await screen.findByText(/Loading more products/)).toBeVisible();
+  expect(listRequests).toHaveLength(2);
+  expect(screen.getByRole("heading", { name: card.name })).toBeVisible();
+  const pendingRequest = listRequests.at(-1);
+  pendingList = false;
+  await user.selectOptions(screen.getByLabelText("Sort by"), "price-desc");
+  await screen.findByRole("heading", { name: card.name });
+  expect(pendingRequest.options.signal.aborted).toBe(true);
+  const query = new URL(listRequests.at(-1).url, "http://localhost").searchParams;
+  expect(query.get("page")).toBe("1");
+  expect(query.get("sort")).toBe("price-desc");
+});
+
+test("load more works when automatic scrolling is unavailable", async () => {
+  vi.stubGlobal("IntersectionObserver", undefined);
+  render(<App />);
+  await screen.findByRole("heading", { name: card.name });
+  await userEvent.click(screen.getByRole("button", { name: "Load more products" }));
+  expect(await screen.findByRole("heading", { name: "Canvas weekend sneaker" })).toBeVisible();
+  expect(screen.getByRole("heading", { name: card.name })).toBeVisible();
+});
+
+
+test("local filters include matching products from subsequent loads", async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  await screen.findByRole("heading", { name: card.name });
+  const filters = within(screen.getByRole("complementary", { name: "Product filters" }));
+  await user.type(filters.getByLabelText("Max price"), "400");
+  expect(screen.queryByRole("heading", { name: card.name })).not.toBeInTheDocument();
+  await act(async () => scrollToCatalogEnd());
+  expect(await screen.findByRole("heading", { name: "Canvas weekend sneaker" })).toBeVisible();
+  expect(screen.getByRole("status")).toHaveTextContent("1 of 2 loaded products");
 });

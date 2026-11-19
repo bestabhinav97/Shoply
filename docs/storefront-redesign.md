@@ -5,10 +5,10 @@ This is a presentation and browsing-UX update. Routes, API modules, query contra
 - The single header row is now a sticky, bounded header with a demo announcement, attached category/search controls, account dropdown, disabled cart, and a category strip built from the existing categories query.
 - Mobile places the wordmark, cart, and account-menu icon above the full-width search. The category strip scrolls independently.
 - The large catalog banner is now a compact coral promotion with a Shop now link and two desktop category tiles. Tiles use the first two returned categories; no invented categories or product images are used.
-- The listing adds a desktop filter sidebar and mobile modal drawer, a result-count/sort toolbar, removable filter chips, and Clear all. Category, search, sorting, and pagination continue using existing URL behavior.
-- Availability and price filters operate only on the loaded page, explicitly labeled in the UI. A filtered count says “N of M on this page”; pagination remains available to browse other pages. Price inputs accept SEK and compare against integer minor-unit prices, including the existing minimum variant price for products with price ranges.
+- The listing adds a desktop filter sidebar and mobile modal drawer, a result-count/sort toolbar, removable filter chips, and Clear all. Category, search and sorting use URL state. The customer list now loads additional API pages automatically while scrolling.
+- Availability and price filters apply to all loaded products. Scrolling appends more products; a Load more button provides keyboard access and a fallback when automatic loading is unavailable. Failed incremental loads preserve existing cards and offer an explicit retry. Price inputs accept SEK and compare integer minor-unit prices.
 - Product grids use two columns on mobile, three from 720px, four from 1024px, and five from 1280px. Cards have square lazy-loaded images, broken-image fallbacks, two-line names, bold SEK prices, supported stock badges, and a full-width View product treatment inside the existing card link.
-- Existing loading, API-error/retry, empty-result, and pagination states are retained. Reduced-motion preferences disable the new hover movement. Native details/dialog controls provide account disclosure and modal filtering; Escape closes either control.
+- Existing loading, API-error/retry, empty-result, and incremental loading states are retained. Reduced-motion preferences disable the new hover movement. Native details/dialog controls provide account disclosure and modal filtering; Escape closes either control.
 
 ## Changed and added files
 

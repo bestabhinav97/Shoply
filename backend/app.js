@@ -6,6 +6,7 @@ import authRoutes from "./modules/auth/auth.routes.js";
 import cartRoutes from "./modules/cart/cart.routes.js";
 import locationRoutes from "./modules/locations/location.routes.js";
 import addressRoutes from "./modules/addresses/address.routes.js";
+import paymentRoutes from "./modules/payments/payment.routes.js";
 import {
   productRoutes,
   categoryRoutes,
@@ -28,6 +29,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/locations", locationRoutes);
 app.use("/api/addresses", addressRoutes);
+app.use("/api/payments", paymentRoutes);
 app.use("/api/products", catalogLimiter, productRoutes);
 app.use("/api/categories", catalogLimiter, categoryRoutes);
 app.use("/api/admin/products", catalogLimiter, adminProductRoutes);

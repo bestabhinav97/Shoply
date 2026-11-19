@@ -14,7 +14,7 @@ export function FilterSidebar({ categories, params, inStock, minPrice, maxPrice,
           {categories.map((category) => <Link key={category.id} to={categoryLink(params, category.slug)} aria-current={selected === category.slug ? "page" : undefined} onClick={onNavigate}>{category.name}</Link>)}
         </div>
       </fieldset>
-      <p className="filter-scope">Availability and price apply to the products on this page.</p>
+      <p className="filter-scope">Availability and price apply to loaded products. More products load as you scroll.</p>
       <fieldset>
         <legend>Availability</legend>
         <label className="stock-filter"><input type="checkbox" checked={inStock} onChange={(event) => onChange("inStock", event.target.checked)} />In stock only</label>

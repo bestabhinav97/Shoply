@@ -288,7 +288,7 @@
   min-width: 0;
   overflow: hidden;
   border: 1px solid var(--color-border);
-  border-radius: 10px;
+  border-radius: 0;
   background: var(--color-surface);
 }
 
@@ -436,8 +436,9 @@
   margin: 4px;
 }
 
-.catalog-pagination {
+.catalog-load-more {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   gap: 16px;
@@ -445,7 +446,7 @@
   font-size: 14px;
 }
 
-.catalog-pagination button:disabled {
+.catalog-load-more button:disabled {
   cursor: default;
 }
 
@@ -654,11 +655,11 @@
   .catalog-sort label {
     font-size: 12px;
   }
-  .catalog-pagination {
+  .catalog-load-more {
     gap: 8px;
     font-size: 12px;
   }
-  .catalog-pagination .button {
+  .catalog-load-more .button {
     padding: 12px;
   }
 }

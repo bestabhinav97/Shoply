@@ -8,6 +8,7 @@ import { env } from "../config/env.js";
 import { validateList } from "../modules/products/product.validation.js";
 import { createLimiter } from "../shared/rateLimits.js";
 import argon2 from "argon2";
+import { products } from "../seeds/products.js";
 
 test("catalog query validation rejects invalid and unbounded requests", () => {
   assert.deepEqual(validateList({}), {
@@ -76,12 +77,12 @@ test("catalog API and seeds against an isolated PostgreSQL schema", async (t) =>
   });
 
   await t.test("seed data is persisted and safe to run twice", async () => {
-    assert.equal(await seedProducts(), 12);
+    assert.equal(await seedProducts(), products.length);
     assert.equal(await seedProducts(), 0);
     assert.equal(
       (await pool.query("SELECT count(*)::integer AS n FROM products")).rows[0]
         .n,
-      12,
+      products.length,
     );
   });
 
@@ -120,10 +121,10 @@ test("catalog API and seeds against an isolated PostgreSQL schema", async (t) =>
       ]);
 
       const adminList = await request(app)
-        .get("/api/admin/products")
+        .get("/api/admin/products?limit=48")
         .set("Cookie", cookie)
         .expect(200);
-      assert.equal(adminList.body.pagination.total, 12);
+      assert.equal(adminList.body.pagination.total, products.length);
       assert.ok(
         adminList.body.items.some(
           (product) => product.id === productId && product.status === "draft",
@@ -131,7 +132,7 @@ test("catalog API and seeds against an isolated PostgreSQL schema", async (t) =>
       );
       assert.equal(adminList.headers["cache-control"], "no-store");
       const publicList = await request(app).get("/api/products").expect(200);
-      assert.equal(publicList.body.pagination.total, 11);
+      assert.equal(publicList.body.pagination.total, products.length - 1);
       assert.ok(
         publicList.body.items.every(
           (product) => product.id !== productId && product.status === undefined,
@@ -162,8 +163,11 @@ test("catalog API and seeds against an isolated PostgreSQL schema", async (t) =>
         .get("/api/products?sort=price-asc&limit=5")
         .expect(200);
       assert.equal(response.body.items.length, 5);
-      assert.equal(response.body.pagination.total, 12);
-      assert.equal(response.body.pagination.totalPages, 3);
+      assert.equal(response.body.pagination.total, products.length);
+      assert.equal(
+        response.body.pagination.totalPages,
+        Math.ceil(products.length / 5),
+      );
       const prices = response.body.items.map((item) => item.priceMinor);
       assert.deepEqual(
         prices,
@@ -186,7 +190,7 @@ test("catalog API and seeds against an isolated PostgreSQL schema", async (t) =>
       const outside = await request(app)
         .get("/api/products?page=99")
         .expect(200);
-      assert.equal(outside.body.pagination.total, 12);
+      assert.equal(outside.body.pagination.total, products.length);
       assert.deepEqual(outside.body.items, []);
 
       for (const q of ["%", "_", "'; DROP TABLE products; --"]) {
@@ -270,7 +274,10 @@ test("catalog API and seeds against an isolated PostgreSQL schema", async (t) =>
         const list = await request(app)
           .get("/api/products?category=shoes")
           .expect(200);
-        assert.equal(list.body.pagination.total, 1);
+        assert.equal(
+          list.body.pagination.total,
+          products.filter((product) => product.category === "shoes").length - 1,
+        );
       }
 
       await pool.query("UPDATE products SET status = 'active' WHERE id = $1", [

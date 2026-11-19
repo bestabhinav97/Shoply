@@ -5,7 +5,7 @@
 body { font-size: var(--text-base); line-height: 1.6; }
 .container, .catalog-page, .cart-page, .account-page { width: 100%; max-width: var(--container-width); margin-left: auto; margin-right: auto; padding-left: var(--page-gutter); padding-right: var(--page-gutter); }
 .catalog-page, .cart-page { margin-top: 24px; margin-bottom: 64px; }
-.catalog-browse-page { max-width: var(--container-width); }
+.catalog-browse-page { max-width: none; }
 .container, .container > *, .product-details-layout > *, .cart-layout > * { min-width: 0; }
 .button { gap: 8px; min-height: 48px; padding: 12px 20px; border-radius: var(--radius-sm); color: var(--color-text); font-size: var(--text-sm); line-height: 1.4; }
 .button.primary { background: var(--color-primary-button); border-color: var(--color-primary-button); color: var(--color-surface); }

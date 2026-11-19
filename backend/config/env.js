@@ -21,7 +21,19 @@ export const env = {
   production,
   appOrigin,
   jwtSecret: process.env.JWT_SECRET,
+  smtp: {
+    host: process.env.SMTP_HOST?.trim() || '',
+    port: Number(process.env.SMTP_PORT || 587),
+    user: process.env.SMTP_USER?.trim() || '',
+    password: process.env.SMTP_PASSWORD || '',
+    from: process.env.EMAIL_FROM?.trim() || '',
+  },
   geoapifyApiKey: process.env.GEOAPIFY_API_KEY || '',
+  braintree: {
+    merchantId: process.env.BRAINTREE_MERCHANT_ID?.trim() || '',
+    publicKey: process.env.BRAINTREE_PUBLIC_KEY?.trim() || '',
+    privateKey: process.env.BRAINTREE_PRIVATE_KEY?.trim() || '',
+  },
   sessionSeconds: 8 * 60 * 60,
   port: Number(process.env.PORT || 3000),
   db: {

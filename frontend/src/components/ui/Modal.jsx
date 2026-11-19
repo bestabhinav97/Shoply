@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { ModalCloseButton } from './ModalCloseButton';
 import { lockDialogScroll } from './dialogScrollLock';
 
-export function Modal({ open, onClose, label, labelledBy, describedBy, className = '', children }) {
+export function Modal({ open, onClose, label, labelledBy, describedBy, className = '', dismissible = true, children }) {
   const dialog = useRef(null);
   useEffect(() => {
     const element = dialog.current;
@@ -19,13 +19,13 @@ export function Modal({ open, onClose, label, labelledBy, describedBy, className
   }, [open]);
   return <dialog ref={dialog} className={`modal ${className}`.trim()} aria-modal="true" aria-label={labelledBy ? undefined : label}
     aria-labelledby={labelledBy} aria-describedby={describedBy}
-    onCancel={(event) => { event.preventDefault(); onClose(); }}
+    onCancel={(event) => { event.preventDefault(); if (dismissible) onClose(); }}
     onClick={(event) => {
-      if (event.currentTarget !== event.target) return;
+      if (!dismissible || event.currentTarget !== event.target) return;
       const bounds = event.currentTarget.getBoundingClientRect();
       if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) onClose();
     }}>
-    <ModalCloseButton onClick={onClose} />
+    <ModalCloseButton onClick={onClose} disabled={!dismissible} />
     {open && children}
   </dialog>;
 }

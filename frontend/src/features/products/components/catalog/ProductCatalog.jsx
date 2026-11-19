@@ -3,7 +3,9 @@ import { Link, useSearchParams } from "react-router-dom";
 import { Drawer } from "../../../../components/ui/Drawer";
 import { Icon } from "../../../../components/ui/Icon";
 import { FilterSidebar } from "./FilterSidebar";
-import { useCategories, useProducts } from "../../hooks/useProducts";
+import { useCategories } from "../../hooks/useProducts";
+import { useInfiniteProducts } from "../../hooks/useInfiniteProducts";
+import { CatalogLoadMore } from "./CatalogLoadMore";
 import { ProductSort } from "./ProductSort";
 import { Button } from "../../../../components/ui/Button";
 import { ProductGrid, ProductSkeletons } from "./ProductGrid";
@@ -14,17 +16,20 @@ export function ProductCatalog() {
     q: searchParams.get("q") || "",
     category: searchParams.get("category") || "",
     sort: searchParams.get("sort") || "newest",
-    page: searchParams.get("page") || "1",
     limit: "12",
   };
-  const products = useProducts(filters);
-  const pagination = products.data?.pagination;
+  const products = useInfiniteProducts(filters);
+  const pagination = products.data?.pages[0].pagination;
+  const loadedItems = [...new Map(
+    (products.data?.pages.flatMap((page) => page.items) || [])
+      .map((product) => [product.id, product]),
+  ).values()];
   const categories = useCategories();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [localFilters, setLocalFilters] = useState({ inStock: false, minPrice: "", maxPrice: "" });
   const { inStock, minPrice, maxPrice } = localFilters;
   const hasLocalFilters = inStock || minPrice !== "" || maxPrice !== "";
-  const items = (products.data?.items || []).filter((product) =>
+  const items = loadedItems.filter((product) =>
     (!inStock || product.inStock) &&
     (minPrice === "" || product.priceMinor >= Math.round(Number(minPrice) * 100)) &&
     (maxPrice === "" || product.priceMinor <= Math.round(Number(maxPrice) * 100))
@@ -50,12 +55,6 @@ export function ProductCatalog() {
   };
   const categoryName = categories.data?.items.find((category) => category.slug === filters.category)?.name || filters.category;
 
-  function goToPage(page) {
-    const next = new URLSearchParams(searchParams);
-    next.set("page", page);
-    setSearchParams(next);
-  }
-
   return (
     <section id="catalog-listing" className="catalog-listing" aria-label="Product catalog">
       <aside className="filter-sidebar" aria-label="Product filters">
@@ -69,8 +68,8 @@ export function ProductCatalog() {
         <div className="catalog-toolbar">
           <div className="catalog-toolbar-heading">
             <h2>Explore the catalog</h2>
-            {products.isSuccess && <p className="catalog-count" role="status">
-              {hasLocalFilters ? `${items.length} of ${products.data.items.length} on this page` : `${pagination.total} ${pagination.total === 1 ? "product" : "products"}`}
+            {products.data && <p className="catalog-count" role="status">
+              {hasLocalFilters ? `${items.length} of ${loadedItems.length} loaded products` : `${pagination.total} ${pagination.total === 1 ? "product" : "products"}`}
               {filters.q && <> matching “{filters.q}”</>}
             </p>}
           </div>
@@ -88,7 +87,7 @@ export function ProductCatalog() {
 
       {products.isPending && <ProductSkeletons />}
 
-      {products.isError && (
+      {products.isError && !products.data && (
         <div className="catalog-feedback" role="alert">
           <h2>We couldn’t load the products.</h2>
           <p>{products.error.message}</p>
@@ -99,7 +98,7 @@ export function ProductCatalog() {
         </div>
       )}
 
-      {products.isSuccess && (
+      {products.data && (
         <>
           {items.length ? (
             <ProductGrid products={items} />
@@ -118,25 +117,7 @@ export function ProductCatalog() {
             </div>
           )}
 
-          {pagination.totalPages > 1 && (
-            <nav className="catalog-pagination" aria-label="Product pages">
-              <Button
-                disabled={pagination.page <= 1}
-                onClick={() => goToPage(pagination.page - 1)}
-              >
-                Previous
-              </Button>
-              <span>
-                Page {pagination.page} of {pagination.totalPages}
-              </span>
-              <Button
-                disabled={pagination.page >= pagination.totalPages}
-                onClick={() => goToPage(pagination.page + 1)}
-              >
-                Next
-              </Button>
-            </nav>
-          )}
+          <CatalogLoadMore query={products} loadedCount={loadedItems.length} />
         </>
       )}
       </div>

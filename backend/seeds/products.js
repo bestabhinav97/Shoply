@@ -124,4 +124,194 @@ export const products = [
     description:
       "A simple spiral notebook for lists, sketches and everyday thoughts. Other desk accessories shown are not included.",
   },
+  {
+    slug: "studio-headphones",
+    name: "Studio headphones",
+    category: "desk",
+    price: 39900,
+    description: "Classic black over-ear headphones for a desk setup. Other accessories are not included."
+  },
+  {
+    slug: "city-daypack",
+    name: "City daypack",
+    category: "accessories",
+    price: 34900,
+    description: "A red and black backpack for your everyday rotation. Headphones and stationery pictured are not included."
+  },
+  {
+    slug: "minimal-desk-lamp",
+    name: "Minimal desk lamp",
+    category: "desk",
+    price: 29900,
+    description: "A simple task lamp for a quiet workspace. Laptop and desk accessories are not included."
+  },
+  {
+    slug: "everyday-writing-notebook",
+    name: "Everyday writing notebook",
+    category: "desk",
+    price: 5900,
+    description: "An understated notebook for notes and everyday ideas. The pen pictured is not included."
+  },
+  {
+    slug: "daily-desk-planner",
+    name: "Daily desk planner",
+    category: "desk",
+    price: 11900,
+    description: "A desk planner for keeping your thoughts and plans together. Styling accessories are not included."
+  },
+  {
+    slug: "classic-strap-watch",
+    name: "Classic strap watch",
+    category: "accessories",
+    price: 49900,
+    description: "An analog watch with a classic strap silhouette. This demo listing makes no water-resistance or movement claims."
+  },
+  {
+    slug: "white-over-ear-headphones",
+    name: "White over-ear headphones",
+    category: "desk",
+    price: 44900,
+    description: "White over-ear headphones with a clean profile. The display stand is not included."
+  },
+  {
+    slug: "sunshine-desk-lamp",
+    name: "Sunshine desk lamp",
+    category: "desk",
+    price: 24900,
+    description: "A cheerful yellow lamp for a study corner. Stationery and styling accessories are not included."
+  },
+  {
+    slug: "brown-pocket-wallet",
+    name: "Brown pocket wallet",
+    category: "accessories",
+    price: 19900,
+    description: "A warm brown wallet with a compact folded profile for everyday carry."
+  },
+  {
+    slug: "classic-black-wallet",
+    name: "Classic black wallet",
+    category: "accessories",
+    price: 17900,
+    description: "An understated black wallet for an everyday accessories collection. Phone and contents are not included."
+  },
+  {
+    slug: "brown-buckle-belt",
+    name: "Brown buckle belt",
+    category: "accessories",
+    price: 22900,
+    description: "A brown belt with a warm-toned buckle and a classic casual silhouette."
+  },
+  {
+    slug: "white-tea-set",
+    name: "White tea set",
+    category: "home",
+    price: 34900,
+    description: "A coordinated white teapot and tea bowl set for a minimal tabletop. Table styling is not included."
+  },
+  {
+    slug: "floral-tea-set",
+    name: "Floral tea set",
+    category: "home",
+    price: 59900,
+    description: "A decorative floral teapot with coordinating cups and plate. Flowers and background props are not included."
+  },
+  {
+    slug: "neutral-tableware-set",
+    name: "Neutral tableware set",
+    category: "home",
+    price: 39900,
+    description: "A coordinated selection of ceramic cups, bowls and plates in quiet neutral tones. Food and styling accessories are not included."
+  },
+  {
+    slug: "open-page-journal",
+    name: "Open-page journal",
+    category: "desk",
+    price: 7900,
+    description: "A lined journal for daily reflections and lists. The pen pictured is not included."
+  },
+  {
+    slug: "blue-writing-pen",
+    name: "Blue writing pen",
+    category: "desk",
+    price: 2900,
+    description: "A simple blue pen for your stationery collection. The notebook pictured is not included."
+  },
+  {
+    slug: "midnight-headphones",
+    name: "Midnight headphones",
+    category: "desk",
+    price: 32900,
+    description: "Black over-ear headphones with a simple modern shape. Audio and connectivity specifications are not provided for this demo."
+  },
+  {
+    slug: "stone-dial-watch",
+    name: "Stone-dial watch",
+    category: "accessories",
+    price: 39900,
+    description: "A classic analog watch for an understated accessories collection. This demo listing makes no water-resistance or movement claims."
+  },
+  {
+    slug: "white-summer-sandals",
+    name: "White summer sandals",
+    category: "shoes",
+    price: 27900,
+    description: "White slip-on sandals with a clean summer silhouette.",
+    options: [
+      {
+        name: "Size",
+        values: [
+          "EU 37",
+          "EU 38",
+          "EU 39",
+          "EU 40"
+        ]
+      }
+    ],
+    combinations: [
+      [
+        0
+      ],
+      [
+        1
+      ],
+      [
+        2
+      ],
+      [
+        3
+      ]
+    ]
+  },
+  {
+    slug: "casual-black-deck-shoes",
+    name: "Casual black deck shoes",
+    category: "shoes",
+    price: 19900,
+    description: "Black lace-up deck shoes with contrasting soles for an easygoing wardrobe.",
+    options: [
+      {
+        name: "Size",
+        values: [
+          "EU 37",
+          "EU 38",
+          "EU 39",
+          "EU 40"
+        ]
+      }
+    ],
+    combinations: [
+      [
+        0
+      ],
+      [
+        1
+      ],
+      [
+        2
+      ],
+      [
+        3
+      ]
+    ]
+  },
 ];

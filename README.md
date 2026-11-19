@@ -4,13 +4,13 @@ React (JavaScript + Vite) frontend and a modular Express monolith backed by Post
 
 ## Local setup
 
-Prerequisites: Node.js 22.12+ (Node 24 recommended) and Docker with Compose.
+Prerequisites: Node.js 22.19+ (Node 24 recommended) and Docker with Compose.
 
 1. Copy `.env.example` to `.env`, set the two passwords and generate `JWT_SECRET` with the command shown in that file. A configured `.env` already exists on this machine. Never commit it.
 2. Run `npm install` from the project root.
 3. Run `npm run db:up` to start PostgreSQL and pgAdmin.
 4. Run `npm run db:migrate` to apply SQL migrations.
-5. Run `npm run db:seed` to insert the optional development catalog (12 sample products and 18 variants). It is safe to rerun and refuses production execution.
+5. Run `npm run db:seed` to insert the optional development catalog (32 sample products and 44 variants). It is safe to rerun and refuses production execution.
 6. Run `npm run dev` to start both the API and React development server.
 
 - Frontend: http://localhost:5173
@@ -19,6 +19,20 @@ Prerequisites: Node.js 22.12+ (Node 24 recommended) and Docker with Compose.
 - PostgreSQL from the host: `127.0.0.1:5433`, database/user/password from `.env`.
 
 In pgAdmin, register a server with hostname **postgres**, port **5432**, maintenance database matching `POSTGRES_DB`, and credentials matching `POSTGRES_USER` / `POSTGRES_PASSWORD`. Containers use the Docker service name and internal port rather than the host port.
+
+## SMTP email setup
+
+Set `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` and `EMAIL_FROM` in the
+root `.env` using the placeholders in `.env.example`. For Brevo, use the SMTP
+Login and SMTP key, plus a verified sender address for `EMAIL_FROM`. Restart the
+backend after changing settings. Keep credentials out of frontend code and Git.
+
+`backend/shared/email.js` exports `sendEmail({ to, subject, text, html })` for
+backend services. It creates a reusable Nodemailer transporter on first use,
+requires encrypted SMTP (STARTTLS on port 587, immediate TLS on port 465), and
+returns sanitized 503 errors for missing configuration or delivery failures.
+SMTP acceptance does not guarantee inbox delivery. No email is sent at startup.
+Password-reset endpoints and email templates are not implemented yet.
 
 ## Structure
 
@@ -47,9 +61,169 @@ Keep future business features inside `backend/modules/<feature>/` with their own
 
 Vite proxies `/api` requests to the Express port configured in `.env`. Database credentials stay on the backend; frontend variables prefixed `VITE_` are public.
 
+## Braintree sandbox setup (steps 1–4)
+
+The backend installs the official `braintree` Node SDK. Add `BRAINTREE_MERCHANT_ID`,
+`BRAINTREE_PUBLIC_KEY` and `BRAINTREE_PRIVATE_KEY` to the root `.env` using your
+sandbox account credentials. Keep the private key local and replace any key shared
+in chat. The tracked `.env.example` contains empty placeholders only. Never expose
+these settings through `VITE_` variables or frontend code.
+
+`backend/config/env.js` reads these settings into `env.braintree`.
+`backend/modules/payments/braintree.client.js` exports `getBraintreeGateway()`.
+The function validates that all three values are present and creates one reusable
+SDK gateway explicitly configured for `braintree.Environment.Sandbox`. It creates
+the object on first use so existing store features can run without payment setup.
+Construction does not validate credentials with Braintree or make network requests.
+Restart the backend after changing `.env`.
+
+After configuring the credentials, run `npm run payments:check --workspace backend`
+from the project root. This explicit check requests a client token from the sandbox,
+using Node's system certificate store with TLS verification enabled. This command
+requires Node 22.19+ or a current Node 24 release (recommended for this project). It
+checks that it is nonempty and prints `Braintree sandbox connection successful.`
+The token is discarded without printing or saving it. Configuration, authentication
+or network failures print a safe message and exit with a nonzero code. The command
+does not create customers, save cards, charge payments or access PostgreSQL (the
+shared configuration still requires the existing database and JWT environment settings).
+Nothing contacts Braintree automatically during application startup.
+
+### Client-token endpoint
+
+`POST /api/payments/client-token` accepts an empty JSON object (`{}`), with no query
+parameters. It requires the signed-in session cookie, allowed `Origin`, and
+`X-CSRF-Token` header (obtain the token from `GET /api/auth/csrf`). It returns 200
+with `{ "clientToken": "..." }` and `Cache-Control: no-store`. The route delegates
+to a controller for input/response handling and a service for the Braintree SDK call.
+No customer ID or other gateway options are accepted from the browser.
+
+Unauthenticated requests return 401; invalid Origin/content type/CSRF returns 403;
+unsupported input returns 400. Valid authenticated and CSRF-verified requests are
+limited to 20 per minute per IP, with excess requests returning 429. Missing payment
+configuration, provider failures and malformed provider results return a safe 503
+without revealing SDK errors. The gateway has a ten-second network socket timeout.
+Backend dev/start scripts use Node's system certificate store with TLS verification
+enabled, matching the connection-check command.
+
+The frontend uses this endpoint to initialize sandbox Hosted Fields. This endpoint creates only a client
+token; it does not save or charge a card.
+
+### Braintree customer-link table
+
+Migration `007_braintree_customers.sql` adds `braintree_customers`. Run
+`npm run db:migrate` to apply it. `user_id` is both the primary key and a foreign
+key to `users`, allowing one customer link per Shoply user. The unique, required
+`braintree_customer_id` prevents sharing one Braintree customer between Shoply
+accounts. IDs must be nonempty, have no surrounding spaces and fit 255 characters.
+`created_at` and `updated_at` default to the insertion time; future update queries
+must explicitly maintain `updated_at`.
+
+The table contains no card details or payment method tokens. The repository in
+`backend/modules/payments/payment.repository.js` exports
+`findBraintreeCustomerByUserId(userId)` (row or `null`) and
+`createBraintreeCustomerLink(userId, braintreeCustomerId)` (inserted row). Both
+use parameterized SQL and return database column names, including timestamps.
+Each accepts an optional final database/client argument, defaulting to the shared
+pool, so the service can control a transaction. The repository never starts
+or commits transactions and never contacts Braintree. Inserts preserve existing
+links by allowing uniqueness/foreign-key violations to propagate to the caller,
+rather than silently replacing ownership. `lockUserForCustomerLink(userId, client)`
+locks the owning user row inside the service's transaction. Deleting a Shoply user
+cascades to their local link only; SQL does not delete anything from Braintree.
+This integration currently uses one sandbox account. Sandbox customer IDs cannot
+be reused when switching to a live or different merchant account; environment/account
+separation must be handled before enabling that switch.
+
+`getOrCreateBraintreeCustomer(userId)` in `payment.service.js` accepts a trusted
+session user ID and returns a Braintree customer ID. It begins a transaction,
+locks the user row, and reuses an existing link without calling Braintree. Missing
+users receive 401. For an unlinked user it uses a stable customer ID consisting of
+`sl_` plus the user's UUID without hyphens (35 characters, within Braintree's
+36-character limit). It finds that customer first and creates it only on Braintree's
+explicit Not Found response, then inserts the local link and commits. No names,
+emails, phone numbers or card data are sent during customer creation.
+
+The user row lock serializes concurrent requests. Stable IDs let a later retry
+recover if Braintree created the customer but its response was lost or the database
+write failed. A SQL rollback cannot undo a Braintree creation; the next call finds
+and links that same remote customer. SDK failures, malformed responses and database
+errors return a safe 503 without provider details. The incremental `/methods` route
+calls this service, but the frontend does not call it yet. It does not save cards
+or create payments. Existing links
+are reused as stored; reconciliation after manual Vault deletion is deferred.
+Customer API reference: [Braintree customer creation](https://developer.paypal.com/braintree/docs/reference/request/customer/create/node).
+
+### Save a card in the Braintree Vault
+
+`POST /api/payments/methods` identifies the session user, creates/reuses their linked
+Braintree customer, and saves the supplied card nonce in that customer's Vault. Send
+`{ "nonce": "the-single-use-nonce" }` as JSON, with the session cookie, allowed
+`Origin` and `X-CSRF-Token`. Unknown fields (including user/customer IDs), query
+parameters, missing/non-string nonces, whitespace/control characters and strings
+over 1024 characters return 400. The nonce is opaque; validation only checks the
+request shape, not whether Braintree issued it.
+
+The controller calls `savePaymentMethod(userId, nonce)` in the payment service. The
+service gets the customer ID and calls `gateway.paymentMethod.create` with only
+`customerId`, `paymentMethodNonce` and `options: { verifyCard: true }`. The backend
+always requests verification, independently of browser input. On success it checks
+the returned card belongs to the expected customer and returns an allowlist of
+fields; it never returns the raw SDK object, billing information or nonce.
+
+Success is **201** with this response shape:
+
+```json
+{
+  "paymentMethod": {
+    "token": "saved-card-token",
+    "brand": "Visa",
+    "last4": "1111",
+    "expirationMonth": "12",
+    "expirationYear": "2030"
+  }
+}
+```
+
+Braintree stores the card and its payment method token. PostgreSQL still stores
+only the user/customer link; no new migration or card table is needed. The frontend
+sends its nonce to this endpoint and displays the returned masked card. Saved-card removal is described below; purchase/payment flows remain deferred.
+
+Authentication/CSRF failures return 401/403. Provider validation or verification
+rejections return **422** with safe instructions to enter the card details again.
+Missing configuration, SDK exceptions, malformed results and unexpected card
+ownership return **503** without provider details. A timeout may happen after
+Braintree has saved the card, so the service does not retry or reuse the nonce
+automatically. A rejected save can leave an empty customer/link for reuse.
+Requests are independently limited to 20 per minute per IP, with excess requests
+returning 429. Responses use `Cache-Control: no-store`.
+
+This sandbox integration does not create a purchase transaction. Card verification
+can use a zero-value or small temporary authorization (not a settled purchase);
+see [Braintree card verification](https://developer.paypal.com/braintree/docs/reference/request/payment-method/create/node).
+
+### Read saved cards
+
+`GET /api/payments/methods` requires a current authenticated session and accepts no
+query parameters or request body. It calls `listPaymentMethods(userId)`, looks up
+the session user's local customer link, and returns `{ "items": [] }` immediately
+if no link exists. It never creates a customer or card. For an existing link it
+calls Braintree `customer.find` and maps only that customer's `creditCards` to the
+same token/brand/last4/expirationMonth/expirationYear summary used by POST. The
+customer ID and each card's ownership are checked before returning data.
+
+Success is 200 with `{ "items": [ ...maskedCardSummaries ] }` and
+`Cache-Control: no-store`. No CSRF token is needed for this read-only endpoint.
+Unauthenticated requests return 401; unsupported input returns 400; the independent
+60-per-minute per-IP read limit returns 429. Missing/malformed remote customers,
+unexpected card ownership, configuration problems and provider failures return a
+safe 503 rather than silently reporting an empty Vault. Reads leave local links
+unchanged. [Braintree customer response reference](https://developer.paypal.com/braintree/docs/reference/response/customer/node).
+SDK setup reference: [Braintree Node.js server setup](https://developer.paypal.com/braintree/docs/start/hello-server/node).
+
 ## Commands
 
 - `npm run dev:backend` / `npm run dev:frontend`: run either app independently.
+- `npm run payments:check --workspace backend`: explicitly verify Braintree sandbox credentials by generating and discarding a client token.
 - `npm run build`: build the frontend to `frontend/dist`.
 - `npm run lint`: lint the frontend.
 - `npm test`: backend integration tests and frontend interaction tests. Backend tests create and remove a separate randomly named PostgreSQL schema; Docker PostgreSQL must be running.
@@ -189,6 +363,8 @@ The catalog supports database-backed browsing and admin creation/editing. Custom
 
 The shared header contains product search with a category dropdown on its left, populated from the categories API. Select a category and submit to browse it, or enter a search term to search within it. Search works from any route and navigates to `/products`; submitting from the catalog preserves sorting and resets pagination. Committed search/category values follow the URL, including Back/Forward navigation. On narrow screens the search occupies a second full-width header row. Sorting remains above the product grid.
 
+The customer catalog uses TanStack Query infinite queries to append 12 products at a time as the end of the list approaches. Search, category and sorting remain in the URL and select a separate result list starting at page 1; legacy `page` URL values are ignored. A keyboard-accessible Load more button also works without IntersectionObserver. Next-page failures keep existing cards visible and require an explicit retry. Availability and price filters apply to all loaded products. The REST API and admin catalog retain pagination.
+
 Generic `Button`, `Input` and `Select` controls live in `frontend/src/components/ui/`. `Header.jsx` handles layout and imports `CatalogSearch` through the products feature's public API; category fetching, form drafts and product search navigation stay inside that feature. Header styles live in `components/layout/header.css`, shared form-control styles in `components/ui/controls.css`, and catalog styles in `styles/catalog.css`.
 
 The seed catalog is explicitly marked as a demo in the UI. Names, descriptions, prices and inventory are fictional development data, not supplier offers. Product data lives in `backend/seeds/products.js`; the frontend reads only the API. Records use deterministic seed IDs and unique slugs. Existing products and all their children are skipped on reruns, including renamed seed products. Seeds do not act as a catalog update command, and removing a seed entry does not delete a database record.
@@ -252,7 +428,7 @@ Products are bounded to 8 options, 100 values per option, 250 actual variants an
 
 ### Photographs and future uploads
 
-Twelve curated Pexels photographs are stored in `frontend/public/images/products/` and served under `/images/products/`. They are resized to at most 1000px, converted to WebP and stripped of metadata. The seed command requires no internet access. Source pages, photographers, retrieval date, license and transformations are recorded in `backend/seeds/photos.json` and the public `SOURCES.md`. These are illustrative stock photos, not evidence of supplier specifications or brand relationships; review rights and replace them with approved product photography before selling actual goods.
+Thirty-two curated Pexels photographs are stored in `frontend/public/images/products/` and served under `/images/products/`. They are resized to at most 1000px, converted to WebP and stripped of metadata. The seed command requires no internet access. Source pages, photographers, retrieval date, license and transformations are recorded in `backend/seeds/photos.json` and the public `SOURCES.md`. These are illustrative stock photos, not evidence of supplier specifications or brand relationships; review rights and replace them with approved product photography before selling actual goods.
 
 PostgreSQL stores keys such as `products/everyday-white-sneaker.webp`, not image bytes. The product service resolves these to public image URLs. Future admin uploads will use persistent object storage through this boundary, not write into the frontend source or temporary server disk.
 
@@ -281,8 +457,88 @@ Product recommendations use the real category catalog API, exclude the current p
 
 ## Account area
 
-`/account` redirects to `/account/profile`. Profile, Addresses, Payment methods and Orders each have protected, refreshable routes under `/account`. Addresses supports PostgreSQL-backed add/list/select/default operations; Payment methods and Orders remain UI-only empty states. Account components and styles live in `frontend/src/features/account/`, with address functionality in `frontend/src/features/addresses/`; route pages live in `frontend/src/pages/account/`. The desktop sidebar becomes a horizontally scrollable navigation bar below 768px.
+`/account` redirects to `/account/profile`. Profile, Addresses, Payment methods and Orders each have protected, refreshable routes under `/account`. Addresses supports PostgreSQL-backed add/list/select/default operations; Orders remains a UI-only empty state. Account components and styles live in `frontend/src/features/account/`, with address functionality in `frontend/src/features/addresses/`; route pages live in `frontend/src/pages/account/`. The desktop sidebar becomes a horizontally scrollable navigation bar below 768px.
+
+Payment methods lives in `frontend/src/features/payments/`. **Add a card** opens a
+sandbox-only dialog that requests a client token through the shared API client
+(session cookies and CSRF), then lazily loads the `braintree-web` client and Hosted
+Fields modules. Braintree owns the card number, expiry and CVV iframe inputs; raw
+card values never enter Shoply's React state or API. The CVV input is masked and
+fields have internal screen-reader labels and visible focus styles.
+
+**Save card** calls `tokenize({ vault: false })`, then sends only the nonce to
+`POST /api/payments/methods` using the shared API client. A TanStack mutation with
+automatic retries disabled handles saving. On success, its returned masked card
+is cached under the authenticated user, the saved-card query is invalidated to
+refresh from the Vault, the dialog closes and a success notice
+appears. Server-returned tokens identify cards in this cache; neither tokens nor
+nonces are rendered. The nonce is cleared from mutation variables after settling,
+and client tokens are cleared from mutation state after setup. No payment data is
+stored in localStorage or sessionStorage.
+
+The form handles setup/tokenization errors, verification rejection (422), expired
+sessions (401), rate limits (429), and uncertain server/network failures. Each manual
+retry tokenizes anew instead of reusing the prior nonce. While a submission is in
+progress, the submit/cancel/close controls and Escape/backdrop dismissal are disabled
+to prevent duplicate attempts. Closing before submission or leaving tears down
+Hosted Fields, including instances that finish initializing after unmount. A pending
+save cannot be undone by leaving. Late responses cannot populate another user's
+cache after an account switch. The SDK requires network access to Braintree;
+blocked third-party resources cause a retryable setup error.
+
+Use only [Braintree sandbox test cards](https://developer.paypal.com/braintree/docs/guides/credit-cards/testing-go-live/node)
+in this dialog. For a successful verification, use Visa `4111 1111 1111 1111`,
+expiry `12/30` (or another future date) and CVV `123`. For a verification decline,
+use Visa `4000 1111 1111 1115` with the same future expiry/test CVV. Sandbox fraud
+rules can affect results, particularly if billing-address verification is required.
+Checkout and purchase payments remain deferred.
+
+The example cards and Preview state controls have been removed. The list loads
+saved cards through `GET /api/payments/methods` whenever the payment page mounts,
+including after returning from another tab or refreshing. `usePaymentMethods`
+owns the query, scoped to the signed-in user, with request cancellation, no automatic
+retries and no persistent browser storage. Saving cancels any in-flight list request,
+merges the returned card without duplicate tokens, and invalidates the query to
+reconcile with Braintree. Account switching cannot populate another user's cache.
+Loading uses the existing skeleton rows; errors offer a safe message and retry
+without claiming the list is empty. Each saved card has a Remove action with a confirmation dialog showing its brand and last four digits.
+No new frontend environment variables are required. Tests stub the SDK/API to
+cover saving and masked display, CSRF, verification errors, duplicate submission,
+account switching, cancellation, late cleanup and Strict Mode.
+Listing tests also cover ownership, empty/no-link reads, sanitized failures,
+rate limits, fresh-mount persistence and retry after a list failure.
+
+See [the payment refinement report](docs/payment-refinement.md) for the compact
+page/modal design, SDK-driven inline feedback, copy inventory, and the pending
+browser measurements for account-tab layout shifts.
+
+Saved cards and the detected brand in Hosted Fields display matching local card
+artwork (Visa, Mastercard, American Express, Discover, Diners Club, JCB, UnionPay
+and Maestro), with a generic icon for unknown brands. These identify actual cards;
+they do not imply that every network is enabled. Artwork provenance and the
+upstream license are in `frontend/public/images/payment-brands/`.
 
 Profile displays and edits the current user's email and phone. `PATCH /api/auth/me` accepts a nonempty object containing only `email` and/or `phoneNumber`, for example `{ "phoneNumber": "+12025550123" }`, and returns `{ "user": { ... } }` with the same public fields as `GET /api/auth/me`. It requires the session cookie, CSRF token and allowed Origin. Emails are normalized to lowercase and must be unique; phones must include `+` and a valid country code and are stored in E.164 format. Invalid input returns 400 with field errors, duplicate emails return 409, and unauthenticated requests return 401. The user ID always comes from the session. Successful saves update the shared auth query cache and PostgreSQL user record.
 
 Email and phone ownership verification is intentionally deferred (TODO in the profile service). Changing email also changes the login email immediately. Existing registration still requires email and a Swedish phone number; the profile UI supports missing values defensively, without changing registration or the database's required fields. Existing sign-out controls remain available. No migrations, dependencies or environment variables were added.
+
+
+### Remove a saved card
+
+`DELETE /api/payments/methods` accepts exactly `{ "token": "payment-method-token" }`
+in JSON, with the session cookie, allowed Origin and CSRF header. The token stays
+in the request body rather than a URL. The backend reads the session user's existing
+Braintree customer link, verifies the selected card belongs to that customer, then
+uses [Braintree Payment Method Delete](https://developer.paypal.com/braintree/docs/reference/request/payment-method/delete/node/).
+It never creates a customer or accepts user/customer IDs from the browser. A missing
+or foreign token returns the same 204 without deleting anything, making repeat
+requests safe and avoiding disclosure of another customer's cards. Provider failures
+return a sanitized 503; a timeout can happen after deletion, so the UI explains the
+uncertain result and allows manual retry. Mutation requests are rate-limited.
+
+Confirmation disables submission and dismissal while pending. The selected token,
+not the last four digits, identifies the card. Success removes only that card from
+the authenticated user's query cache, refreshes the Vault list and announces removal.
+Account changes reset dialogs and prevent late responses from changing another
+user's cache. Cancel sends no deletion request; failures keep the existing card
+visible. No migrations, dependencies or configuration changes are needed.

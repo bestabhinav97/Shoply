@@ -1,4 +1,5 @@
 const paths = {
+  lock: "M6 10h12v11H6z M8 10V7a4 4 0 018 0v3",
   close: "M6 6l12 12 M6 18L18 6",
   locate: "M12 2v3 M12 19v3 M2 12h3 M19 12h3 M20 12a8 8 0 11-16 0 8 8 0 0116 0 M15 12a3 3 0 11-6 0 3 3 0 016 0",
   mail: "M3 5h18v14H3z M3 5l9 7 9-7",

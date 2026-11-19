@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.105.3",
+    "braintree-web": "^3.144.0",
     "libphonenumber-js": "^1.13.15",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",

@@ -1,4 +1,4 @@
-﻿import { beforeEach, afterEach, test, expect, vi } from 'vitest';
+import { beforeEach, afterEach, test, expect, vi } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from '../src/app/App';
@@ -26,6 +26,7 @@ beforeEach(() => {
     if (url === '/api/categories') return response({ items: [] });
     if (url === '/api/cart') return response({ items: [], itemCount: 0 });
     if (url === '/api/addresses') return response({ items: [], defaultAddressId: null, selectedAddressId: null });
+    if (url === '/api/payments/methods') return response({ items: [] });
     throw new Error(`Unexpected request: ${url}`);
   }));
 });
@@ -37,7 +38,7 @@ test('account defaults to Profile and navigation has linkable placeholder routes
   expect(window.location.pathname).toBe('/account/profile');
   const nav = screen.getByRole('navigation', { name: 'Account navigation' });
   expect(within(nav).getByRole('link', { name: 'Profile' })).toHaveAttribute('aria-current', 'page');
-  for (const [name, path, empty] of [['Addresses', 'addresses', 'No saved addresses yet. Add your first delivery address.'], ['Payment methods', 'payment-methods', 'No payment methods yet.'], ['Orders', 'orders', 'No orders yet.']]) {
+  for (const [name, path, empty] of [['Addresses', 'addresses', 'No saved addresses yet. Add your first delivery address.'], ['Payment methods', 'payment-methods', 'No saved cards'], ['Orders', 'orders', 'No orders yet.']]) {
     await userEvent.click(within(nav).getByRole('link', { name }));
     expect(window.location.pathname).toBe(`/account/${path}`);
     expect(screen.getByRole('heading', { name, exact: true })).toBeVisible();
